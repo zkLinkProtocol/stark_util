@@ -47,13 +47,15 @@ impl Builder {
     }
 
     pub fn build(self) -> Result<StarkClient> {
-        let url = self.url.expect("url error");
         let provider = if self.is_rpc {
+            let url = self.url.expect("url error");
             ProviderArgs::Rpc(url).into()
         } else {
-            let gateway_url = url.join("gateway")?;
-            let feeder_gateway_url = url.join("feeder_gateway")?;
-            ProviderArgs::Gateway(Some((gateway_url, feeder_gateway_url)), self.network).into()
+            let web_url = match self.url {
+                Some(url) => Some((url.join("gateway")?, url.join("feeder_gateway")?)),
+                _ => None,
+            };
+            ProviderArgs::Gateway(web_url, self.network).into()
         };
 
         let wallet = LocalWallet::from(SigningKey::from_secret_scalar(self.private_key));

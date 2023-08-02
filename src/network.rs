@@ -72,16 +72,16 @@ impl NetworkSource for ExtendedProvider {
         let is_integration = self.is_integration();
 
         Ok(if is_integration {
-            if chain_id == starknet::core::chain_id::TESTNET {
+            if chain_id == chain_id::TESTNET {
                 Some(Network::Integration)
             } else {
                 None
             }
-        } else if chain_id == starknet::core::chain_id::MAINNET {
+        } else if chain_id == chain_id::MAINNET {
             Some(Network::Mainnet)
-        } else if chain_id == starknet::core::chain_id::TESTNET {
+        } else if chain_id == chain_id::TESTNET {
             Some(Network::Goerli1)
-        } else if chain_id == starknet::core::chain_id::TESTNET2 {
+        } else if chain_id == chain_id::TESTNET2 {
             Some(Network::Goerli2)
         } else {
             None

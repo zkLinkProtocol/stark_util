@@ -9,6 +9,7 @@ use crate::primitive::FieldElement;
 use crate::to_field_elements;
 
 pub struct Call<'a> {
+    // any owner
     client: &'a StarkClient,
 }
 

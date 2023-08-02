@@ -10,8 +10,8 @@ use starknet::signers::LocalWallet;
 
 pub struct StarkClient {
     owner: SingleOwnerAccount<ExtendedProvider, LocalWallet>,
-    contract_address: FieldElement, //TODO  remove user address
-    address: FieldElement,          //TODO remove
+    contract_address: FieldElement, //TODO remove
+    address: FieldElement,          //TODO remove user address
 }
 
 impl StarkClient {
@@ -43,6 +43,7 @@ impl StarkClient {
             .await?)
     }
 
+    // TODO
     pub async fn invoke<T>(&self, func_name: &str, calldata: T) -> anyhow::Result<TxHash>
     where
         T: Serialize,
@@ -62,6 +63,7 @@ impl StarkClient {
         Ok(tx_hash.into())
     }
 
+    // TODO
     pub async fn call<T>(&self, func_name: &str, calldata: T) -> anyhow::Result<Vec<FieldElement>>
     where
         T: Serialize,
@@ -85,6 +87,7 @@ impl StarkClient {
 
 #[cfg(test)]
 mod test {
+    use crate::builder::Builder;
     use crate::client::StarkClient;
     use crate::network::Network;
     use crate::proto::{
@@ -178,15 +181,15 @@ mod test {
         let private_key_hex = "6fb84183efc4de5a4707ac7ad487d5e1db4ec34a2c1500ee25fe6ab29940462";
         let address = "0x13528b84b5a4ed4a7aff3b3a27363565f38608499f1404f73e15c11fce9aa5d";
         let contract_address = "0x474c2b5858139a7d7f20e71f836fc98f130c2c2992888433fbdce742a95d564";
-        let chain_id = Network::Goerli1;
-        let client = StarkClient::new(
-            web3_url,
-            private_key_hex,
-            address,
-            contract_address,
-            chain_id,
-        );
-        client
+        let network = Network::Goerli1;
+        use crate::builder::Builder;
+        let client = Builder::new()
+            .set_network(network)?
+            .set_url(web3_url)?
+            .set_owner_address(address)?
+            .set_private_key(private_key_hex)?
+            .build();
+        client.unwrap()
     }
 
     #[tokio::test]
