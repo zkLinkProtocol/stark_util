@@ -12,7 +12,10 @@ serde = "1.0"
 hex = "0.4"
 primitive-types = "0.12"
 url = "2.3"
-anyhow = "1.0"
+starknet_api = { git = "https://github.com/starkware-libs/starknet-api.git", branch = "main", version = "0.3.0" }
+async-trait = "0.1.72"
+auto_impl = "1.1.0"
+anyhow = "1.0.72"
 
 [dev-dependencies]
 tokio = {version = "1", features = ["full"]}

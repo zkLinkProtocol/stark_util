@@ -1,19 +1,19 @@
-use std::sync::Arc;
-use crate::proto::TxHash;
-use crate::to_field_elements;
 use serde::Serialize;
 use starknet::accounts::{Account, Call, ConnectedAccount, SingleOwnerAccount};
-use starknet::core::types::{BlockId, BlockTag, BroadcastedDeclareTransaction, BroadcastedDeclareTransactionV1, BroadcastedDeclareTransactionV2, BroadcastedDeployAccountTransaction, BroadcastedInvokeTransaction, BroadcastedInvokeTransactionV1, CompressedLegacyContractClass, FieldElement };
+use starknet::core::types::{BlockId, BlockTag, FieldElement, FunctionCall};
 use starknet::core::utils::get_selector_from_name;
-use starknet::providers::sequencer::models::{TransactionRequest, DeclareTransactionRequest};
-use starknet::providers::{Provider, SequencerGatewayProvider};
+use starknet::providers::Provider;
 use starknet::signers::{LocalWallet, SigningKey};
 
+use crate::network::Network;
+use crate::proto::TxHash;
+use crate::provider::{ExtendedProvider, ProviderArgs};
+use crate::to_field_elements;
+
 pub struct StarkClient {
-    inner: SingleOwnerAccount<SequencerGatewayProvider, LocalWallet>,
-    pub contract_address: FieldElement,
-    pub address: FieldElement,
-    pub local_wallet: LocalWallet,
+    owner: SingleOwnerAccount<ExtendedProvider, LocalWallet>,
+    contract_address: FieldElement,
+    address: FieldElement, // TODO user address
 }
 
 impl StarkClient {
@@ -22,140 +22,42 @@ impl StarkClient {
         private_key_hex: &str,
         address: &str,
         contract_address: &str,
-        chain_id: FieldElement,
+        chain_id: Network,
     ) -> Self {
         let gateway_url: url::Url = format!("{}/gateway", web3_url).parse().unwrap();
         let feeder_gateway_url: url::Url = format!("{}/feeder_gateway", web3_url).parse().unwrap();
-        let provider = SequencerGatewayProvider::new(gateway_url, feeder_gateway_url, chain_id);
-        let signer = LocalWallet::from(SigningKey::from_secret_scalar(
+        let provider =
+            ProviderArgs::Gateway(Some((gateway_url, feeder_gateway_url)), chain_id).into();
+        let wallet = LocalWallet::from(SigningKey::from_secret_scalar(
             FieldElement::from_hex_be(private_key_hex).unwrap(),
         ));
         let address = FieldElement::from_hex_be(address).unwrap();
         let contract_address = FieldElement::from_hex_be(contract_address).unwrap();
-        let account = SingleOwnerAccount::new(provider, signer.clone(), address, chain_id);
+        let owner = SingleOwnerAccount::new(provider, wallet.clone(), address, chain_id.into());
         Self {
-            inner: account,
+            owner,
             contract_address,
             address,
-            local_wallet: signer,
         }
     }
 
-    pub fn client(&self) -> &SingleOwnerAccount<SequencerGatewayProvider, LocalWallet> {
-        &self.inner
+    pub fn client(&self) -> &SingleOwnerAccount<ExtendedProvider, LocalWallet> {
+        &self.owner
     }
 
     pub async fn get_last_block_number(&self) -> anyhow::Result<u64> {
-        let number = self.client().provider().block_number().await?;
-        Ok(number)
+        Ok(self.client().provider().block_number().await?)
     }
 
     pub async fn get_pending_nonce(&self) -> anyhow::Result<FieldElement> {
-        let nonce = Provider::get_nonce(
-            self.client().provider(),
-            BlockId::Tag(BlockTag::Pending),
-            self.contract_address,
-        )
-        .await?;
-        Ok(nonce)
+        Ok(self
+            .client()
+            .provider()
+            .get_nonce(BlockId::Tag(BlockTag::Pending), self.contract_address)
+            .await?)
     }
 
-    pub async fn send_transaction(
-        &self,
-        request: TransactionRequest,
-    ) -> anyhow::Result<FieldElement> {
-        let tx_hash = match request {
-            TransactionRequest::Declare(value) => {
-                match value {
-                    DeclareTransactionRequest::V1(tx) => {
-                        let abi = tx.contract_class.abi.clone().map(|abi_list|{
-                            abi_list.into_iter().map(|abi| abi.into()).collect()
-                        });
-                        let contract_class = CompressedLegacyContractClass {
-                            program: tx.contract_class.program.clone(),
-                            entry_points_by_type: tx.contract_class.entry_points_by_type.clone().into(),
-                            abi,
-                        };
-                        let t = BroadcastedDeclareTransactionV1 {
-                         max_fee: tx.max_fee,
-                            signature: tx.signature,
-                            nonce: tx.nonce,
-                            contract_class: Arc::new(contract_class),
-                            sender_address: tx.sender_address,
-                        };
-                        let tx = BroadcastedDeclareTransaction::V1(t);
-                        let result = self.client().provider().add_declare_transaction(tx).await?;
-                        result.transaction_hash
-                    },
-                    DeclareTransactionRequest::V2(tx) => {
-                        let contract_class = todo!("get flatten contract class");
-                        let t = BroadcastedDeclareTransactionV2 {
-                            max_fee: tx.max_fee,
-                            signature: tx.signature,
-                            nonce: tx.nonce,
-                            contract_class: Arc::new(contract_class),
-                            sender_address: tx.sender_address,
-                            compiled_class_hash: tx.compiled_class_hash,
-                        };
-                        let tx = BroadcastedDeclareTransaction::V2(t);
-                        let result = self.client().provider().add_declare_transaction(tx).await?;
-                        result.transaction_hash
-                    }
-                }
-            }
-            TransactionRequest::DeployAccount(value) => {
-                let tx = BroadcastedDeployAccountTransaction {
-                    class_hash: value.class_hash,
-                    contract_address_salt: value.contract_address_salt,
-                    constructor_calldata: value.constructor_calldata,
-                    max_fee: value.max_fee,
-                    signature: value.signature,
-                    nonce: value.nonce
-                };
-                let r = self
-                    .client()
-                    .provider()
-                    .add_deploy_account_transaction(tx)
-                    .await?;
-                r.transaction_hash
-            }
-            TransactionRequest::InvokeFunction(value) => {
-                let tx_v1 = BroadcastedInvokeTransactionV1 {
-                    max_fee: value.max_fee,
-                    signature: value.signature,
-                    nonce: value.nonce,
-                    sender_address: value.sender_address,
-                    calldata: value.calldata
-                };
-                let tx = BroadcastedInvokeTransaction::V1(tx_v1);
-                let r = self.client().provider().add_invoke_transaction(tx).await?;
-                r.transaction_hash
-            }
-        };
-        Ok(tx_hash)
-    }
-
-    // pub async fn get_transaction_receipt(&self, tx_hash: TxHash) -> anyhow::Result<FieldElement> {
-    //     let r = Provider::get_transaction_receipt(self.client().provider(), &tx_hash).await?;
-    //     match r {
-    //         MaybePendingTransactionReceipt::Receipt(receipt) => {
-    //             match receipt {
-    //                 TransactionReceipt::DeployAccount(recipt) => {
-    //                     let s = recipt.status
-    //                     Ok(receipt.transaction_hash)
-    //                 },
-    //                 TransactionReceipt::Declare(d) => Ok(d.transaction_hash)
-    //                 TransactionReceipt::
-    //             }
-    //         },
-    //         MaybePendingTransactionReceipt::PendingReceipt(receipt) => {
-    //
-    //         }
-    //     }
-    //
-    // }
-
-    pub async fn call<T>(&self, func_name: &str, calldata: T) -> anyhow::Result<TxHash>
+    pub async fn invoke<T>(&self, func_name: &str, calldata: T) -> anyhow::Result<TxHash>
     where
         T: Serialize,
     {
@@ -173,18 +75,38 @@ impl StarkClient {
         let tx_hash = result.transaction_hash;
         Ok(tx_hash.into())
     }
+
+    pub async fn call<T>(&self, func_name: &str, calldata: T) -> anyhow::Result<Vec<FieldElement>>
+    where
+        T: Serialize,
+    {
+        let selector = get_selector_from_name(func_name).unwrap();
+        let calldata = to_field_elements(calldata)?;
+        Ok(self
+            .client()
+            .provider()
+            .call(
+                FunctionCall {
+                    contract_address: self.contract_address.clone(),
+                    entry_point_selector: selector,
+                    calldata,
+                },
+                BlockId::Tag(BlockTag::Pending),
+            )
+            .await?)
+    }
 }
 
 #[cfg(test)]
 mod test {
     use crate::client::StarkClient;
-    use crate::num::PrimitiveU256;
+    use crate::network::Network;
     use crate::proto::{
         Bytes, CommitBlockInfo, CompressedBlockExtraInfo, ExecuteBlockInfo, OnchainOperationData,
         StoredBlockInfo, TxHash,
     };
+    use crate::u256::PrimitiveU256;
     use crate::U256;
-    use starknet::core::chain_id;
 
     impl StarkClient {
         pub async fn test_u128_list(
@@ -192,18 +114,18 @@ mod test {
             calldata: Vec<u128>,
             index: usize,
         ) -> anyhow::Result<TxHash> {
-            self.call("u128Test", (calldata, index)).await
+            self.invoke("u128Test", (calldata, index)).await
         }
         pub async fn test_u256_list(
             &self,
             calldata: Vec<U256>,
             index: usize,
         ) -> anyhow::Result<TxHash> {
-            self.call("u256sTest", (calldata, index)).await
+            self.invoke("u256s_test", (calldata, index)).await
         }
 
         pub async fn test_u8_array(&self, calldata: Vec<u8>) -> anyhow::Result<TxHash> {
-            self.call("u8sTest1", calldata).await
+            self.invoke("u8s_test1", calldata).await
         }
 
         pub async fn test_bytes_list(
@@ -211,7 +133,7 @@ mod test {
             calldata: Vec<Bytes>,
             index: usize,
         ) -> anyhow::Result<TxHash> {
-            self.call("bytesListTest", (calldata, index)).await
+            self.invoke("bytesListTest", (calldata, index)).await
         }
 
         pub async fn test_stored_block_info(
@@ -219,7 +141,7 @@ mod test {
             info_list: Vec<StoredBlockInfo>,
             i: usize,
         ) -> anyhow::Result<TxHash> {
-            self.call("StoredBlockInfoTest", (info_list, i)).await
+            self.invoke("stored_block_info_test", (info_list, i)).await
         }
 
         pub async fn test_commit_block_info(
@@ -228,7 +150,8 @@ mod test {
             i: usize,
             j: usize,
         ) -> anyhow::Result<TxHash> {
-            self.call("CommitBlockInfoTest", (info_list, i, j)).await
+            self.invoke("commit_block_info_test", (info_list, i, j))
+                .await
         }
 
         pub async fn test_compressed_block_extra_info(
@@ -237,7 +160,7 @@ mod test {
             i: usize,
             j: usize,
         ) -> anyhow::Result<TxHash> {
-            self.call("CompressedBlockExtraInfoTest", (info_list, i, j))
+            self.invoke("compressed_block_extra_info_test", (info_list, i, j))
                 .await
         }
 
@@ -248,7 +171,7 @@ mod test {
             j: u8,
             op_type: u8,
         ) -> anyhow::Result<TxHash> {
-            self.call("ExecuteBlockInfoTest", (info_list, i, j, op_type))
+            self.invoke("execute_block_info_test", (info_list, i, j, op_type))
                 .await
         }
 
@@ -259,7 +182,7 @@ mod test {
             j: u8,
             op_type: u8,
         ) -> anyhow::Result<TxHash> {
-            self.call("ExecuteBlockInfoTest2", (info_list, i, j, op_type))
+            self.invoke("ExecuteBlockInfoTest2", (info_list, i, j, op_type))
                 .await
         }
     }
@@ -269,7 +192,7 @@ mod test {
         let private_key_hex = "6fb84183efc4de5a4707ac7ad487d5e1db4ec34a2c1500ee25fe6ab29940462";
         let address = "0x13528b84b5a4ed4a7aff3b3a27363565f38608499f1404f73e15c11fce9aa5d";
         let contract_address = "0x474c2b5858139a7d7f20e71f836fc98f130c2c2992888433fbdce742a95d564";
-        let chain_id = chain_id::TESTNET;
+        let chain_id = Network::Goerli1;
         let client = StarkClient::new(
             web3_url,
             private_key_hex,

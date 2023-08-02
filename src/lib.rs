@@ -1,13 +1,21 @@
 mod der;
-mod num;
 mod ser;
 mod serde;
+mod u256;
 
+mod call;
 pub mod client;
+mod contract;
 pub(crate) mod decoder;
 pub(crate) mod encoder;
 pub mod error;
+mod invoke;
+mod network;
+mod primitive;
 pub mod proto;
+mod provider;
+mod zklink;
+mod zklink_test;
 
 use crate::decoder::DecoderImpl;
 use crate::der::de_owned::SerdeDecoder;
@@ -17,8 +25,8 @@ use crate::error::{DecodeError, EncodeError};
 use crate::ser::SerdeEncoder;
 use ::serde::de::DeserializeOwned;
 use ::serde::Serialize;
-pub use num::U256;
 use starknet::core::types::FieldElement;
+pub use u256::U256;
 
 pub fn to_field_elements<T>(t: T) -> Result<Vec<FieldElement>, EncodeError>
 where
@@ -46,7 +54,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::num::U256;
+    use crate::u256::U256;
     use crate::{from_slice, to_field_elements};
     use primitive_types::U256 as PrimitiveU256;
     use serde::{Deserialize, Serialize};

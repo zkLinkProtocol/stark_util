@@ -1,6 +1,7 @@
-use crate::U256;
 use serde::{Deserialize, Serialize};
-use starknet::core::types::FieldElement;
+
+use crate::primitive::*;
+use crate::U256;
 
 // TODO: change some struct to this type of Bytes
 // TODO: rename Bytes
@@ -168,10 +169,29 @@ pub struct ChangePubKey {
     pub nonce: u32,
 }
 
+// Token info stored in zkLink
+#[derive(Clone, Copy)]
+pub struct Token {
+    pub token_id: u16,                  // token id defined by zkLink
+    pub token_address: ContractAddress, // token address in l1
+    pub decimals: u8,                   // token decimals in l1
+    pub standard: bool,                 // if token a pure erc20 or not
+}
+
+// Recursive proof input data (individual commitments are constructed onchain)
+#[derive(Clone)]
+pub struct ProofInput {
+    pub recursive_input: Vec<U256>,
+    pub proof: Vec<U256>,
+    pub commitments: Vec<U256>,
+    pub vk_indexes: Vec<u8>,
+    pub subproofs_limbs: Vec<U256>,
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::num::PrimitiveU256;
+    use crate::u256::PrimitiveU256;
     use crate::{from_slice, to_field_elements};
 
     #[test]
