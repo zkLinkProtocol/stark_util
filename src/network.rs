@@ -17,6 +17,12 @@ pub enum Network {
     Integration,
 }
 
+impl Default for Network {
+    fn default() -> Self {
+        Network::Goerli1
+    }
+}
+
 impl Into<FieldElement> for Network {
     fn into(self) -> FieldElement {
         match self {

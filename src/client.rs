@@ -1,39 +1,25 @@
+use crate::proto::TxHash;
+use crate::provider::ExtendedProvider;
+use crate::to_field_elements;
 use serde::Serialize;
 use starknet::accounts::{Account, Call, ConnectedAccount, SingleOwnerAccount};
 use starknet::core::types::{BlockId, BlockTag, FieldElement, FunctionCall};
 use starknet::core::utils::get_selector_from_name;
 use starknet::providers::Provider;
-use starknet::signers::{LocalWallet, SigningKey};
-
-use crate::network::Network;
-use crate::proto::TxHash;
-use crate::provider::{ExtendedProvider, ProviderArgs};
-use crate::to_field_elements;
+use starknet::signers::LocalWallet;
 
 pub struct StarkClient {
     owner: SingleOwnerAccount<ExtendedProvider, LocalWallet>,
-    contract_address: FieldElement,
-    address: FieldElement, // TODO user address
+    contract_address: FieldElement, //TODO  remove user address
+    address: FieldElement,          //TODO remove
 }
 
 impl StarkClient {
     pub fn new(
-        web3_url: &str,
-        private_key_hex: &str,
-        address: &str,
-        contract_address: &str,
-        chain_id: Network,
+        owner: SingleOwnerAccount<ExtendedProvider, LocalWallet>,
+        contract_address: FieldElement,
+        address: FieldElement,
     ) -> Self {
-        let gateway_url: url::Url = format!("{}/gateway", web3_url).parse().unwrap();
-        let feeder_gateway_url: url::Url = format!("{}/feeder_gateway", web3_url).parse().unwrap();
-        let provider =
-            ProviderArgs::Gateway(Some((gateway_url, feeder_gateway_url)), chain_id).into();
-        let wallet = LocalWallet::from(SigningKey::from_secret_scalar(
-            FieldElement::from_hex_be(private_key_hex).unwrap(),
-        ));
-        let address = FieldElement::from_hex_be(address).unwrap();
-        let contract_address = FieldElement::from_hex_be(contract_address).unwrap();
-        let owner = SingleOwnerAccount::new(provider, wallet.clone(), address, chain_id.into());
         Self {
             owner,
             contract_address,
@@ -41,17 +27,17 @@ impl StarkClient {
         }
     }
 
-    pub fn client(&self) -> &SingleOwnerAccount<ExtendedProvider, LocalWallet> {
+    pub fn owner(&self) -> &SingleOwnerAccount<ExtendedProvider, LocalWallet> {
         &self.owner
     }
 
     pub async fn get_last_block_number(&self) -> anyhow::Result<u64> {
-        Ok(self.client().provider().block_number().await?)
+        Ok(self.owner().provider().block_number().await?)
     }
 
     pub async fn get_pending_nonce(&self) -> anyhow::Result<FieldElement> {
         Ok(self
-            .client()
+            .owner()
             .provider()
             .get_nonce(BlockId::Tag(BlockTag::Pending), self.contract_address)
             .await?)
@@ -64,7 +50,7 @@ impl StarkClient {
         let selector = get_selector_from_name(func_name).unwrap();
         let calldata_elements = to_field_elements(calldata)?;
         let result = self
-            .client()
+            .owner()
             .execute(vec![Call {
                 to: self.contract_address,
                 selector,
@@ -83,7 +69,7 @@ impl StarkClient {
         let selector = get_selector_from_name(func_name).unwrap();
         let calldata = to_field_elements(calldata)?;
         Ok(self
-            .client()
+            .owner()
             .provider()
             .call(
                 FunctionCall {

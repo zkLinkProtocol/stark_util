@@ -3,6 +3,7 @@ mod ser;
 mod serde;
 mod u256;
 
+mod builder;
 mod call;
 pub mod client;
 mod contract;

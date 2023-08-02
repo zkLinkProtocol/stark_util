@@ -1,6 +1,9 @@
 use async_trait::async_trait;
 use starknet_api::core::ContractAddress;
 
+use crate::client::StarkClient;
+use crate::contract::Contract;
+
 use crate::primitive::*;
 use crate::proto::*;
 use crate::U256;
@@ -72,6 +75,7 @@ pub trait ZkLink {
     }
 
     async fn get_pending_balance(
+        &self,
         _address: ContractAddress,
         _token_id: u16,
     ) -> anyhow::Result<u128> {
@@ -256,5 +260,14 @@ pub trait ZkLink {
 
     async fn u8s_test2(&self, _u8s: Vec<u8>) -> anyhow::Result<Vec<u8>> {
         unimplemented!("method not allowed")
+    }
+}
+
+// TODO
+impl Contract for StarkClient {
+    type Handler = Box<dyn ZkLink>;
+
+    fn contract(&self) -> Self::Handler {
+        unimplemented!("todo")
     }
 }
