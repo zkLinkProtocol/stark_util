@@ -194,12 +194,12 @@ pub trait ZkLink {
     }
 }
 
-impl<'a, T, O> Contract<O> for &'a T where &'a T: Into<O>
-{
-    fn contract(&self) -> O {
-        (*self).into()
-    }
-}
+// impl<'a, T, O> Contract<O> for &'a T where &'a T: Into<O>
+// {
+//     fn contract(&self) -> O {
+//         (*self).into()
+//     }
+// }
 
 struct ZkLinkContract<T> {
     contract_address: FieldElement,

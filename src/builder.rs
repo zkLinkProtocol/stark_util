@@ -10,6 +10,7 @@ use starknet::{
 
 use crate::{client::StarkClient, network::Network, provider::ProviderArgs};
 
+/// build contract
 #[derive(Clone, Default, Debug)]
 pub struct Builder {
     url: Option<Url>,
@@ -67,6 +68,6 @@ impl Builder {
         let wallet = LocalWallet::from(SigningKey::from_secret_scalar(self.private_key));
         let owner = SingleOwnerAccount::new(provider, wallet, self.owner_address, self.network.into());
 
-        Ok(StarkClient::new(owner, self.contract_address, self.owner_address))
+        Ok(StarkClient::new(owner, self.owner_address))
     }
 }

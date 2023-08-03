@@ -12,15 +12,12 @@ use starknet::{
 
 pub struct StarkClient {
     owner: SingleOwnerAccount<ExtendedProvider, LocalWallet>,
-    contract_address: FieldElement, //TODO remove
-    address: FieldElement,          //TODO remove user address
+    address: FieldElement, //TODO remove user address
 }
 
 impl StarkClient {
-    pub fn new(owner: SingleOwnerAccount<ExtendedProvider, LocalWallet>, contract_address: FieldElement, address: FieldElement) -> Self {
-        Self { owner,
-               contract_address,
-               address }
+    pub fn new(owner: SingleOwnerAccount<ExtendedProvider, LocalWallet>, address: FieldElement) -> Self {
+        Self { owner, address }
     }
 
     pub fn owner(&self) -> &SingleOwnerAccount<ExtendedProvider, LocalWallet> {
@@ -31,21 +28,18 @@ impl StarkClient {
         Ok(self.owner().provider().block_number().await?)
     }
 
-    pub async fn get_pending_nonce(&self) -> anyhow::Result<FieldElement> {
-        Ok(self.owner()
-               .provider()
-               .get_nonce(BlockId::Tag(BlockTag::Pending), self.contract_address)
-               .await?)
+    pub async fn get_pending_nonce(&self, address: FieldElement) -> anyhow::Result<FieldElement> {
+        Ok(self.owner().provider().get_nonce(BlockId::Tag(BlockTag::Pending), address).await?)
     }
 
     // TODO
-    pub async fn invoke<T>(&self, func_name: &str, calldata: T) -> anyhow::Result<TxHash>
+    pub async fn invoke<T>(&self, contract_address: FieldElement, func_name: &str, calldata: T) -> anyhow::Result<TxHash>
         where T: Serialize
     {
         let selector = get_selector_from_name(func_name).unwrap();
         let calldata_elements = to_field_elements(calldata)?;
         let result = self.owner()
-                         .execute(vec![Call { to: self.contract_address,
+                         .execute(vec![Call { to: contract_address,
                                               selector,
                                               calldata: calldata_elements }])
                          .send()
@@ -55,14 +49,14 @@ impl StarkClient {
     }
 
     // TODO
-    pub async fn call<T>(&self, func_name: &str, calldata: T) -> anyhow::Result<Vec<FieldElement>>
+    pub async fn call<T>(&self, contract_address: FieldElement, func_name: &str, calldata: T) -> anyhow::Result<Vec<FieldElement>>
         where T: Serialize
     {
         let selector = get_selector_from_name(func_name)?;
         let calldata = to_field_elements(calldata)?;
         Ok(self.owner()
                .provider()
-               .call(FunctionCall { contract_address: self.contract_address.clone(),
+               .call(FunctionCall { contract_address,
                                     entry_point_selector: selector,
                                     calldata },
                      BlockId::Tag(BlockTag::Pending))
