@@ -1,50 +1,45 @@
-mod der;
-mod ser;
-mod serde;
-mod u256;
-
-mod builder;
-mod call;
+pub mod builder;
+pub mod call;
 pub mod client;
-mod contract;
+pub mod contract;
 pub(crate) mod decoder;
+mod der;
 pub(crate) mod encoder;
 pub mod error;
-mod invoke;
-mod network;
-mod primitive;
+pub mod invoke;
+pub mod network;
+pub mod primitive;
 pub mod proto;
-mod provider;
-mod zklink;
-mod zklink_test;
+pub mod provider;
+mod ser;
+mod serde;
+pub mod u256;
+pub mod zklink;
+pub mod zklink_test;
 
-use crate::decoder::DecoderImpl;
-use crate::der::de_owned::SerdeDecoder;
-use crate::der::reader::SliceReader;
-use crate::encoder::EncoderImpl;
-use crate::error::{DecodeError, EncodeError};
-use crate::ser::SerdeEncoder;
-use ::serde::de::DeserializeOwned;
-use ::serde::Serialize;
+use crate::{
+    decoder::DecoderImpl,
+    der::{de_owned::SerdeDecoder, reader::SliceReader},
+    encoder::EncoderImpl,
+    error::{DecodeError, EncodeError},
+    ser::SerdeEncoder,
+};
+use ::serde::{de::DeserializeOwned, Serialize};
 use starknet::core::types::FieldElement;
 pub use u256::U256;
 
 pub fn to_field_elements<T>(t: T) -> Result<Vec<FieldElement>, EncodeError>
-where
-    T: Serialize,
+    where T: Serialize
 {
-    let mut encoder = EncoderImpl {
-        filed_elements: vec![],
-    };
+    let mut encoder = EncoderImpl { field_elements: vec![] };
     let serializer = SerdeEncoder { enc: &mut encoder };
     t.serialize(serializer)?;
-    Ok(encoder.filed_elements)
+    Ok(encoder.field_elements)
 }
 
 /// Attempt to decode a given type `D` from the given slice. Returns the decoded output.
 pub fn from_slice<T>(slice: &[FieldElement]) -> Result<T, DecodeError>
-where
-    T: DeserializeOwned,
+    where T: DeserializeOwned
 {
     let reader = SliceReader::new(slice);
     let mut decoder = DecoderImpl::new(reader);
@@ -55,11 +50,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::u256::U256;
-    use crate::{from_slice, to_field_elements};
+    use crate::{from_slice, to_field_elements, u256::U256};
     use primitive_types::U256 as PrimitiveU256;
     use serde::{Deserialize, Serialize};
     use starknet::core::types::FieldElement;
+    use std::str::FromStr;
 
     #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
     struct TestStruct {
@@ -67,9 +62,9 @@ mod tests {
         is_u16: u16,
         is_u32: u32,
         is_u64: u64,
+        is_usize: usize,
         is_u128: u128,
         is_u256: PrimitiveU256,
-        is_usize: usize,
         element: FieldElement,
         addr: String,
         is_raw_data: Vec<u8>,
@@ -93,31 +88,29 @@ mod tests {
 
         // test U256
         let is_u256: Vec<U256> = vec![PrimitiveU256::from(1).into(), PrimitiveU256::from(2).into()];
+        println!("is_u256: {is_u256:?}");
         let v = to_field_elements(is_u256.clone()).unwrap();
         assert_eq!(v.len(), 5);
-        println!("{v:?}");
+        println!("encode v: {v:?}");
         let v2: Vec<U256> = from_slice(&v).unwrap();
         assert_eq!(is_u256, v2);
 
         // test struct
-        let s = TestStruct {
-            is_u8: 8,
-            is_u16: 16,
-            is_u32: 32,
-            is_u64: 64,
-            is_usize: 1,
-            is_u128: u128::from(128u32),
-            is_u256: PrimitiveU256::one().into(),
-            element: FieldElement::from(10u8),
-            addr: "9e290521bb937cebdbd1b5636037f089f7bf34de51f9fc019b07cdb8ed98a1".to_string(),
-            is_raw_data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9],
-            is_vec_u256: vec![
-                PrimitiveU256::from(1u8).into(),
-                PrimitiveU256::from(2).into(),
-            ],
-        };
+        let s = TestStruct { is_u8: 8,
+                             is_u16: 16,
+                             is_u32: 32,
+                             is_u64: 64,
+                             is_usize: 1,
+                             is_u128: u128::from(128u32),
+                             is_u256: PrimitiveU256::one().into(),
+                             element: FieldElement::from(10u8),
+                             addr: "0x5686c52b6f38639eb9cfb3dfff1b3260315099aa045fcc0b4a865068ba36aad".to_string(),
+                             is_raw_data: vec![1, 2, 3, 4, 5, 6, 7, 8, 9],
+                             is_vec_u256: vec![PrimitiveU256::from(1u8).into(), PrimitiveU256::from(2).into()] };
+        println!("encode struct s: {s:?}");
+
         let v = to_field_elements(s.clone()).unwrap();
-        println!("encode struct: {v:?}");
+        println!("encode struct v: {v:?}");
         let s2: TestStruct = from_slice(&v).unwrap();
         println!("{s2:?}");
         assert_eq!(s, s2);
@@ -127,8 +120,17 @@ mod tests {
     fn test_from_field_elements() {
         let is_u8_vec = vec![1u8; 10];
         let v = to_field_elements(is_u8_vec.clone()).unwrap();
-        let is_u8_vec_expect: Result<Vec<u8>, _> = from_slice(&v);
-        println!("{is_u8_vec_expect:?}");
-        assert_eq!(is_u8_vec, is_u8_vec_expect.unwrap());
+        let is_u8_vec_expect: Vec<u8> = from_slice(v.as_slice()).unwrap();
+        println!("{:?}", is_u8_vec_expect);
+        assert_eq!(is_u8_vec, is_u8_vec_expect);
+    }
+
+    #[test]
+    fn test_field_element() {
+        let address = "0x05686c52b6f38639eb9cfb3dfff1b3260315099aa045fcc0b4a865068ba36aad";
+        let address = FieldElement::from_str(address).unwrap();
+        let v = to_field_elements(address).unwrap();
+        assert_eq!(v.len(), 1);
+        assert_eq!(v[0], address);
     }
 }

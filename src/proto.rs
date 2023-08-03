@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::primitive::*;
-use crate::U256;
+use crate::{primitive::*, U256};
 
 // TODO: change some struct to this type of Bytes
 // TODO: rename Bytes
@@ -191,8 +190,7 @@ pub struct ProofInput {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::u256::PrimitiveU256;
-    use crate::{from_slice, to_field_elements};
+    use crate::{from_slice, to_field_elements, u256::PrimitiveU256};
 
     #[test]
     fn test_tx_hash() {
@@ -203,10 +201,8 @@ mod test {
 
     #[test]
     fn test_serde_bytes() {
-        let b = Bytes {
-            size: 1,
-            data: vec![1, 2, 3],
-        };
+        let b = Bytes { size: 1,
+                        data: vec![1, 2, 3] };
         let elements = to_field_elements(b.clone()).unwrap();
         assert_eq!(elements.len(), 5);
         let b2 = from_slice(&elements).unwrap();
@@ -215,26 +211,22 @@ mod test {
 
     #[test]
     fn test_serde_commit_block_info() {
-        let data = OnchainOperationData {
-            // 2 elements
-            eth_witness: Bytes::default(),
-            // 1 elements
-            public_data_offset: 1,
-        };
-        let info = CommitBlockInfo {
-            // 2 elements
-            new_state_hash: PrimitiveU256::from(1u8).into(),
-            // 2 elements
-            public_data: Bytes::default(),
-            // 1 element
-            timestamp: 1,
-            // 1 + 12 elements
-            onchain_operations: vec![data],
-            // 1 element
-            block_number: 1,
-            // 1 element
-            fee_account: 1,
-        };
+        let data = OnchainOperationData { // 2 elements
+                                          eth_witness: Bytes::default(),
+                                          // 1 elements
+                                          public_data_offset: 1 };
+        let info = CommitBlockInfo { // 2 elements
+                                     new_state_hash: PrimitiveU256::from(1u8).into(),
+                                     // 2 elements
+                                     public_data: Bytes::default(),
+                                     // 1 element
+                                     timestamp: 1,
+                                     // 1 + 12 elements
+                                     onchain_operations: vec![data],
+                                     // 1 element
+                                     block_number: 1,
+                                     // 1 element
+                                     fee_account: 1 };
         let field_elements = to_field_elements(info.clone()).unwrap();
         let info2 = from_slice(&field_elements).unwrap();
         assert_eq!(info, info2);
@@ -242,15 +234,13 @@ mod test {
 
     #[test]
     fn test_serde_stored_block_info() {
-        let info = StoredBlockInfo {
-            block_number: 1,
-            priority_operations: 1,
-            pending_onchain_operations_hash: PrimitiveU256::from(1).into(),
-            timestamp: 1,
-            state_hash: PrimitiveU256::from(1u8).into(),
-            commitment: PrimitiveU256::from(2u8).into(),
-            sync_hash: PrimitiveU256::from(3u8).into(),
-        };
+        let info = StoredBlockInfo { block_number: 1,
+                                     priority_operations: 1,
+                                     pending_onchain_operations_hash: PrimitiveU256::from(1).into(),
+                                     timestamp: 1,
+                                     state_hash: PrimitiveU256::from(1u8).into(),
+                                     commitment: PrimitiveU256::from(2u8).into(),
+                                     sync_hash: PrimitiveU256::from(3u8).into() };
         let field_elements = to_field_elements(info.clone()).unwrap();
         assert_eq!(field_elements.len(), 11);
         let info2 = from_slice(&field_elements).unwrap();

@@ -15,9 +15,7 @@ pub trait Reader {
     fn consume(&mut self, _: usize);
 }
 
-impl<T> Reader for &mut T
-where
-    T: Reader,
+impl<T> Reader for &mut T where T: Reader
 {
     #[inline]
     fn read(&mut self, bytes: &mut [FieldElement]) -> Result<(), DecodeError> {
@@ -43,9 +41,7 @@ pub struct SliceReader<'storage> {
 impl<'storage> SliceReader<'storage> {
     /// Constructs a slice reader
     pub fn new(field_elements: &'storage [FieldElement]) -> SliceReader<'storage> {
-        SliceReader {
-            slice: field_elements,
-        }
+        SliceReader { slice: field_elements }
     }
 }
 
@@ -53,9 +49,7 @@ impl<'storage> Reader for SliceReader<'storage> {
     #[inline(always)]
     fn read(&mut self, field_elements: &mut [FieldElement]) -> Result<(), DecodeError> {
         if field_elements.len() > self.slice.len() {
-            return Err(DecodeError::UnexpectedEnd {
-                additional: field_elements.len() - self.slice.len(),
-            });
+            return Err(DecodeError::UnexpectedEnd { additional: field_elements.len() - self.slice.len() });
         }
         let (read_slice, remaining) = self.slice.split_at(field_elements.len());
         field_elements.copy_from_slice(read_slice);

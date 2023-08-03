@@ -1,13 +1,14 @@
+use std::str::FromStr;
 use url::Url;
 
 use anyhow::Result;
-use starknet::accounts::SingleOwnerAccount;
-use starknet::core::types::FieldElement;
-use starknet::signers::{LocalWallet, SigningKey};
+use starknet::{
+    accounts::SingleOwnerAccount,
+    core::types::FieldElement,
+    signers::{LocalWallet, SigningKey},
+};
 
-use crate::client::StarkClient;
-use crate::network::Network;
-use crate::provider::ProviderArgs;
+use crate::{client::StarkClient, network::Network, provider::ProviderArgs};
 
 #[derive(Clone, Default, Debug)]
 pub struct Builder {
@@ -15,7 +16,7 @@ pub struct Builder {
     is_rpc: bool,
     private_key: FieldElement,
     owner_address: FieldElement,
-    // contract_address: &'static str,
+    contract_address: FieldElement,
     network: Network,
 }
 
@@ -41,6 +42,11 @@ impl Builder {
         Ok(self)
     }
 
+    pub fn set_contract_address(mut self, address: &str) -> Result<Self> {
+        self.contract_address = FieldElement::from_str(address)?;
+        Ok(self)
+    }
+
     pub fn set_network(mut self, network: Network) -> Result<Self> {
         self.network = network;
         Ok(self)
@@ -59,13 +65,8 @@ impl Builder {
         };
 
         let wallet = LocalWallet::from(SigningKey::from_secret_scalar(self.private_key));
-        let owner =
-            SingleOwnerAccount::new(provider, wallet, self.owner_address, self.network.into());
+        let owner = SingleOwnerAccount::new(provider, wallet, self.owner_address, self.network.into());
 
-        Ok(StarkClient::new(
-            owner,
-            FieldElement::default(), //TODO
-            self.owner_address,
-        ))
+        Ok(StarkClient::new(owner, self.contract_address, self.owner_address))
     }
 }

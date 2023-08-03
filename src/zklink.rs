@@ -1,45 +1,36 @@
 use async_trait::async_trait;
 use starknet_api::core::ContractAddress;
 
-use crate::client::StarkClient;
-use crate::contract::{Callable, Contract};
+use crate::{
+    client::StarkClient,
+    contract::{Callable, Contract},
+};
 
-use crate::primitive::*;
-use crate::proto::*;
-use crate::U256;
+use crate::{primitive::*, proto::*, U256};
 
 #[async_trait]
 pub trait ZkLink {
     // =================User interface=================
-    async fn deposit_erc20(
-        &mut self,
-        _token: ContractAddress,
-        _amount: u128,
-        _zk_link_address: ContractAddress,
-        _sub_account_id: u8,
-        _mapping: bool,
-    ) {
+    async fn deposit_erc20(&mut self,
+                           _token: ContractAddress,
+                           _amount: u128,
+                           _zk_link_address: ContractAddress,
+                           _sub_account_id: u8,
+                           _mapping: bool) {
         unimplemented!("method not allowed")
     }
 
-    async fn transfer_erc20(
-        &mut self,
-        _token: ContractAddress,
-        _to: ContractAddress,
-        _amount: u128,
-        _max_amount: u128,
-        _is_standard: bool,
-    ) -> anyhow::Result<u128> {
+    async fn transfer_erc20(&mut self,
+                            _token: ContractAddress,
+                            _to: ContractAddress,
+                            _amount: u128,
+                            _max_amount: u128,
+                            _is_standard: bool)
+                            -> anyhow::Result<u128> {
         unimplemented!("method not allowed")
     }
 
-    async fn request_full_exit(
-        &mut self,
-        _account_id: u32,
-        _sub_account_id: u8,
-        _token_id: u16,
-        _mapping: bool,
-    ) {
+    async fn request_full_exit(&mut self, _account_id: u32, _sub_account_id: u8, _token_id: u16, _mapping: bool) {
         unimplemented!("method not allowed")
     }
 
@@ -47,17 +38,15 @@ pub trait ZkLink {
         unimplemented!("method not allowed")
     }
 
-    async fn perform_exodus(
-        &mut self,
-        _stored_block_info: StoredBlockInfo,
-        _owner: ContractAddress,
-        _account_id: u32,
-        _sub_account_id: u8,
-        _withdraw_token_id: u16,
-        _deduct_token_id: u16,
-        _amount: u128,
-        _proof: Vec<U256>,
-    ) {
+    async fn perform_exodus(&mut self,
+                            _stored_block_info: StoredBlockInfo,
+                            _owner: ContractAddress,
+                            _account_id: u32,
+                            _sub_account_id: u8,
+                            _withdraw_token_id: u16,
+                            _deduct_token_id: u16,
+                            _amount: u128,
+                            _proof: Vec<U256>) {
         unimplemented!("method not allowed")
     }
 
@@ -65,39 +54,24 @@ pub trait ZkLink {
         unimplemented!("method not allowed")
     }
 
-    async fn withdraw_pending_balance(
-        &mut self,
-        _owner: ContractAddress,
-        _token_id: u16,
-        _amount: u128,
-    ) -> anyhow::Result<u128> {
+    async fn withdraw_pending_balance(&mut self, _owner: ContractAddress, _token_id: u16, _amount: u128) -> anyhow::Result<u128> {
         unimplemented!("method not allowed")
     }
 
-    async fn get_pending_balance(
-        &self,
-        _address: ContractAddress,
-        _token_id: u16,
-    ) -> anyhow::Result<u128> {
+    async fn get_pending_balance(&self, _address: ContractAddress, _token_id: u16) -> anyhow::Result<u128> {
         unimplemented!("method not allowed")
     }
 
     // =================Validator interface=================
-    async fn commit_blocks(
-        &mut self,
-        _last_committed_block_data: StoredBlockInfo,
-        _new_blocks_data: Vec<CommitBlockInfo>,
-    ) {
+    async fn commit_blocks(&mut self, _last_committed_block_data: StoredBlockInfo, _new_blocks_data: Vec<CommitBlockInfo>) {
         unimplemented!("method not allowed")
     }
     /// Blocks commitment verification.
     /// Only verifies block commitments without any other processing
-    async fn commit_compressed_blocks(
-        &mut self,
-        _last_committed_block_data: StoredBlockInfo,
-        _new_blocks_data: Vec<CommitBlockInfo>,
-        _new_blocks_extra_data: Vec<CompressedBlockExtraInfo>,
-    ) {
+    async fn commit_compressed_blocks(&mut self,
+                                      _last_committed_block_data: StoredBlockInfo,
+                                      _new_blocks_data: Vec<CommitBlockInfo>,
+                                      _new_blocks_extra_data: Vec<CompressedBlockExtraInfo>) {
         unimplemented!("method not allowed")
     }
 
@@ -128,35 +102,23 @@ pub trait ZkLink {
     }
 
     // =================Fast withdraw and Accept===============
-    async fn accept_erc20(
-        &mut self,
-        _accepter: ContractAddress,
-        _account_id: u32,
-        _receiver: ContractAddress,
-        _token_id: u16,
-        _amount: u128,
-        _withdraw_fee_rate: u16,
-        _nonce: u32,
-        _amount_transfer: u128,
-    ) {
+    async fn accept_erc20(&mut self,
+                          _accepter: ContractAddress,
+                          _account_id: u32,
+                          _receiver: ContractAddress,
+                          _token_id: u16,
+                          _amount: u128,
+                          _withdraw_fee_rate: u16,
+                          _nonce: u32,
+                          _amount_transfer: u128) {
         unimplemented!("method not allowed")
     }
 
-    async fn broker_allowance(
-        &self,
-        _token_id: u16,
-        _accepter: ContractAddress,
-        _broker: ContractAddress,
-    ) -> anyhow::Result<u128> {
+    async fn broker_allowance(&self, _token_id: u16, _accepter: ContractAddress, _broker: ContractAddress) -> anyhow::Result<u128> {
         unimplemented!("method not allowed")
     }
 
-    async fn broker_approve(
-        &mut self,
-        _token_id: u16,
-        _broker: ContractAddress,
-        _amount: u128,
-    ) -> anyhow::Result<bool> {
+    async fn broker_approve(&mut self, _token_id: u16, _broker: ContractAddress, _amount: u128) -> anyhow::Result<bool> {
         unimplemented!("method not allowed")
     }
 
@@ -165,13 +127,7 @@ pub trait ZkLink {
         unimplemented!("method not allowed")
     }
 
-    async fn add_token(
-        &mut self,
-        _token_id: u16,
-        _token_address: ContractAddress,
-        _decimals: u8,
-        _standard: bool,
-    ) {
+    async fn add_token(&mut self, _token_id: u16, _token_address: ContractAddress, _decimals: u8, _standard: bool) {
         unimplemented!("method not allowed")
     }
 
@@ -191,12 +147,7 @@ pub trait ZkLink {
         unimplemented!("method not allowed")
     }
 
-    async fn update_bridge(
-        &mut self,
-        _index: usize,
-        _enable_bridge_to: bool,
-        _enable_bridge_from: bool,
-    ) {
+    async fn update_bridge(&mut self, _index: usize, _enable_bridge_to: bool, _enable_bridge_from: bool) {
         unimplemented!("method not allowed")
     }
 
@@ -210,39 +161,19 @@ pub trait ZkLink {
 
     // =============Test Interface=============
     // TODO only test
-    async fn stored_block_info_test(
-        &self,
-        _blocks_data: Vec<StoredBlockInfo>,
-        i: usize,
-    ) -> anyhow::Result<u64> {
+    async fn stored_block_info_test(&self, _blocks_data: Vec<StoredBlockInfo>, i: usize) -> anyhow::Result<u64> {
         unimplemented!("method not allowed")
     }
 
-    async fn commit_block_info_test(
-        &self,
-        _blocks_data: Vec<CommitBlockInfo>,
-        i: usize,
-        j: usize,
-    ) -> anyhow::Result<usize> {
+    async fn commit_block_info_test(&self, _blocks_data: Vec<CommitBlockInfo>, i: usize, j: usize) -> anyhow::Result<usize> {
         unimplemented!("method not allowed")
     }
 
-    async fn compressed_block_extra_info_test(
-        &self,
-        _blocks_extra_data: Vec<CompressedBlockExtraInfo>,
-        i: usize,
-        j: usize,
-    ) -> anyhow::Result<U256> {
+    async fn compressed_block_extra_info_test(&self, _blocks_extra_data: Vec<CompressedBlockExtraInfo>, i: usize, j: usize) -> anyhow::Result<U256> {
         unimplemented!("method not allowed")
     }
 
-    async fn execute_block_info_test(
-        &self,
-        _blocks_data: Vec<ExecuteBlockInfo>,
-        i: usize,
-        j: usize,
-        _op_type: u8,
-    ) -> anyhow::Result<u8> {
+    async fn execute_block_info_test(&self, _blocks_data: Vec<ExecuteBlockInfo>, i: usize, j: usize, _op_type: u8) -> anyhow::Result<u8> {
         unimplemented!("method not allowed")
     }
 
@@ -263,9 +194,7 @@ pub trait ZkLink {
     }
 }
 
-impl<'a, T, O> Contract<O> for &'a T
-where
-    &'a T: Into<O>,
+impl<'a, T, O> Contract<O> for &'a T where &'a T: Into<O>
 {
     fn contract(&self) -> O {
         (*self).into()

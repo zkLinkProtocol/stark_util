@@ -3,9 +3,10 @@ use std::{fmt::Display, str::FromStr};
 use anyhow::Result;
 use async_trait::async_trait;
 
-use starknet::core::chain_id;
-use starknet::core::types::FieldElement;
-use starknet::providers::Provider;
+use starknet::{
+    core::{chain_id, types::FieldElement},
+    providers::Provider,
+};
 
 use crate::provider::ExtendedProvider;
 
@@ -45,8 +46,7 @@ impl FromStr for Network {
     fn from_str(s: &str) -> Result<Self> {
         match s {
             "mainnet" | "alpha-mainnet" => Ok(Self::Mainnet),
-            "goerli" | "goerli1" | "goerli-1" | "alpha-goerli" | "alpha-goerli1"
-            | "alpha-goerli-1" => Ok(Self::Goerli1),
+            "goerli" | "goerli1" | "goerli-1" | "alpha-goerli" | "alpha-goerli1" | "alpha-goerli-1" => Ok(Self::Goerli1),
             "goerli2" | "goerli-2" | "alpha-goerli2" | "alpha-goerli-2" => Ok(Self::Goerli2),
             "integration" => Ok(Self::Integration),
             _ => Err(anyhow::anyhow!("unknown network: {}", s)),

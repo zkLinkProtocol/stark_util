@@ -1,7 +1,6 @@
-use crate::der::reader::Reader;
-use crate::error::DecodeError;
+use crate::{der::reader::Reader, error::DecodeError};
 use starknet::core::types::FieldElement;
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::Add};
 
 pub fn u128_from_field_element(field_element: FieldElement) -> u128 {
     let data = field_element.to_bytes_be();
@@ -25,9 +24,7 @@ pub trait Decoder {
     fn claim_field_elements_read(&mut self, n: usize) -> Result<(), DecodeError>;
 }
 
-impl<'a, T> Decoder for &'a mut T
-where
-    T: Decoder,
+impl<'a, T> Decoder for &'a mut T where T: Decoder
 {
     type R = T::R;
 
@@ -50,16 +47,12 @@ pub struct DecoderImpl<R> {
 impl<R: Reader> DecoderImpl<R> {
     /// Construct a new Decoder
     pub fn new(reader: R) -> DecoderImpl<R> {
-        DecoderImpl {
-            reader,
-            field_elements_read: 0,
-        }
+        DecoderImpl { reader,
+                      field_elements_read: 0 }
     }
 }
 
-impl<R> Decoder for DecoderImpl<R>
-where
-    R: Reader,
+impl<R> Decoder for DecoderImpl<R> where R: Reader
 {
     type R = R;
 
@@ -72,15 +65,6 @@ where
         self.field_elements_read += n;
         Ok(())
     }
-
-    // #[inline]
-    // fn unclaim_field_elements_read(&mut self, n: usize) {
-    //     // C::LIMIT is a const so this check should get compiled away
-    //     if C::LIMIT.is_some() {
-    //         // We should always be claiming more than we unclaim, so this should never underflow
-    //         self.bytes_read -= n;
-    //     }
-    // }
 }
 
 impl Decode for FieldElement {
@@ -187,16 +171,18 @@ impl Decode for String {
             decoder.reader().consume(1);
             let s = hex::encode(element.to_bytes_be());
             let s = s.trim_start_matches('0');
-            Ok(s.into())
+            if !s.starts_with("0x") {
+                Ok(String::from("0x") + s)
+            } else {
+                Ok(s.into())
+            }
         } else {
             Err(DecodeError::OutOfRange)
         }
     }
 }
 
-impl<T, const N: usize> Decode for [T; N]
-where
-    T: Decode + Sized + 'static,
+impl<T, const N: usize> Decode for [T; N] where T: Decode + Sized + 'static
 {
     fn decode<D: Decoder>(_decoder: &mut D) -> Result<Self, DecodeError> {
         Err(DecodeError::NotSupport("Slice".into()))
@@ -217,10 +203,7 @@ impl<T> Decode for core::marker::PhantomData<T> {
 
 /// Decodes only the option variant from the decoder. Will not read any more data than that.
 #[inline]
-pub fn decode_option_variant<D: Decoder>(
-    decoder: &mut D,
-    _type_name: &'static str,
-) -> Result<Option<()>, DecodeError> {
+pub fn decode_option_variant<D: Decoder>(decoder: &mut D, _type_name: &'static str) -> Result<Option<()>, DecodeError> {
     let is_some = u8::decode(decoder)?;
     match is_some {
         0 => Ok(None),
@@ -229,25 +212,22 @@ pub fn decode_option_variant<D: Decoder>(
     }
 }
 
-impl<T> Decode for Option<T>
-where
-    T: Decode,
+impl<T> Decode for Option<T> where T: Decode
 {
     fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
         match decode_option_variant(decoder, core::any::type_name::<Option<T>>())? {
             Some(_) => {
                 let val = T::decode(decoder)?;
                 Ok(Some(val))
-            }
+            },
             None => Ok(None),
         }
     }
 }
 
 impl<T, U> Decode for Result<T, U>
-where
-    T: Decode,
-    U: Decode,
+    where T: Decode,
+          U: Decode
 {
     fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
         let is_ok = u32::decode(decoder)?;
@@ -255,19 +235,17 @@ where
             0 => {
                 let t = T::decode(decoder)?;
                 Ok(Ok(t))
-            }
+            },
             1 => {
                 let u = U::decode(decoder)?;
                 Ok(Err(u))
-            }
+            },
             _ => Err(DecodeError::OutOfRange),
         }
     }
 }
 
-impl<T> Decode for Vec<T>
-where
-    T: Decode,
+impl<T> Decode for Vec<T> where T: Decode
 {
     fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
         let len = usize::decode(decoder)?;

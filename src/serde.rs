@@ -1,8 +1,10 @@
-use crate::decoder::{Decode, Decoder};
-use crate::der::de_owned::SerdeDecoder;
-use crate::encoder::{Encode, Encoder};
-use crate::error::DecodeError;
-use crate::ser::SerdeEncoder;
+use crate::{
+    decoder::{Decode, Decoder},
+    der::de_owned::SerdeDecoder,
+    encoder::{Encode, Encoder},
+    error::DecodeError,
+    ser::SerdeEncoder,
+};
 
 /// Wrapper struct that implements [Decode] and [Encode] on any type that implements serde's [DeserializeOwned] and [Serialize] respectively.
 ///
@@ -10,9 +12,7 @@ use crate::ser::SerdeEncoder;
 ///
 pub struct Compat<T>(pub T);
 
-impl<T> Decode for Compat<T>
-where
-    T: serde::de::DeserializeOwned,
+impl<T> Decode for Compat<T> where T: serde::de::DeserializeOwned
 {
     fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
         let serde_decoder = SerdeDecoder { de: decoder };
@@ -20,9 +20,7 @@ where
     }
 }
 
-impl<T> Encode for Compat<T>
-where
-    T: serde::Serialize,
+impl<T> Encode for Compat<T> where T: serde::Serialize
 {
     fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), crate::error::EncodeError> {
         let serializer = SerdeEncoder { enc: encoder };

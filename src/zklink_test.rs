@@ -1,11 +1,6 @@
 use async_trait::async_trait;
 
-use crate::client::StarkClient;
-use crate::from_slice;
-use crate::primitive::FieldElement;
-use crate::proto::*;
-use crate::u256::U256;
-use crate::zklink::ZkLink;
+use crate::{client::StarkClient, from_slice, primitive::FieldElement, proto::*, u256::U256, zklink::ZkLink};
 
 pub struct Test<'a> {
     // address: FieldElement,
@@ -20,55 +15,23 @@ impl<'a> From<&'a StarkClient> for Test<'a> {
 
 #[async_trait]
 impl<'a> ZkLink for Test<'a> {
-    async fn stored_block_info_test(
-        &self,
-        blocks_data: Vec<StoredBlockInfo>,
-        i: usize,
-    ) -> anyhow::Result<u64> {
-        let ret = self
-            .client
-            .call("StoredBlockInfoTest", (blocks_data, i))
-            .await?;
+    async fn stored_block_info_test(&self, blocks_data: Vec<StoredBlockInfo>, i: usize) -> anyhow::Result<u64> {
+        let ret = self.client.call("StoredBlockInfoTest", (blocks_data, i)).await?;
         Ok(from_slice(ret.as_slice())?)
     }
 
-    async fn commit_block_info_test(
-        &self,
-        blocks_data: Vec<CommitBlockInfo>,
-        i: usize,
-        j: usize,
-    ) -> anyhow::Result<usize> {
-        let ret = self
-            .client
-            .call("CommitBlockInfoTest", (blocks_data, i, j))
-            .await?;
+    async fn commit_block_info_test(&self, blocks_data: Vec<CommitBlockInfo>, i: usize, j: usize) -> anyhow::Result<usize> {
+        let ret = self.client.call("CommitBlockInfoTest", (blocks_data, i, j)).await?;
         Ok(from_slice(ret.as_slice())?)
     }
 
-    async fn compressed_block_extra_info_test(
-        &self,
-        blocks_extra_data: Vec<CompressedBlockExtraInfo>,
-        i: usize,
-        j: usize,
-    ) -> anyhow::Result<U256> {
-        let ret = self
-            .client
-            .call("CompressedBlockExtraInfoTest", (blocks_extra_data, i, j))
-            .await?;
+    async fn compressed_block_extra_info_test(&self, blocks_extra_data: Vec<CompressedBlockExtraInfo>, i: usize, j: usize) -> anyhow::Result<U256> {
+        let ret = self.client.call("CompressedBlockExtraInfoTest", (blocks_extra_data, i, j)).await?;
         Ok(from_slice(ret.as_slice())?)
     }
 
-    async fn execute_block_info_test(
-        &self,
-        blocks_data: Vec<ExecuteBlockInfo>,
-        i: usize,
-        j: usize,
-        op_type: u8,
-    ) -> anyhow::Result<u8> {
-        let ret = self
-            .client
-            .call("ExecuteBlockInfoTest", (blocks_data, i, j, op_type))
-            .await?;
+    async fn execute_block_info_test(&self, blocks_data: Vec<ExecuteBlockInfo>, i: usize, j: usize, op_type: u8) -> anyhow::Result<u8> {
+        let ret = self.client.call("ExecuteBlockInfoTest", (blocks_data, i, j, op_type)).await?;
         Ok(from_slice(ret.as_slice())?)
     }
 
