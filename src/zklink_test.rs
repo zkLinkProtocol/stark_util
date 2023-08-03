@@ -2,11 +2,13 @@ use async_trait::async_trait;
 
 use crate::client::StarkClient;
 use crate::from_slice;
+use crate::primitive::FieldElement;
 use crate::proto::*;
 use crate::u256::U256;
 use crate::zklink::ZkLink;
 
 pub struct Test<'a> {
+    // address: FieldElement,
     client: &'a StarkClient,
 }
 
@@ -20,57 +22,73 @@ impl<'a> From<&'a StarkClient> for Test<'a> {
 impl<'a> ZkLink for Test<'a> {
     async fn stored_block_info_test(
         &self,
-        _blocks_data: Vec<StoredBlockInfo>,
+        blocks_data: Vec<StoredBlockInfo>,
         i: usize,
     ) -> anyhow::Result<u64> {
-        unimplemented!("method not allowed")
+        let ret = self
+            .client
+            .call("StoredBlockInfoTest", (blocks_data, i))
+            .await?;
+        Ok(from_slice(ret.as_slice())?)
     }
 
     async fn commit_block_info_test(
         &self,
-        _blocks_data: Vec<CommitBlockInfo>,
+        blocks_data: Vec<CommitBlockInfo>,
         i: usize,
         j: usize,
     ) -> anyhow::Result<usize> {
-        unimplemented!("method not allowed")
+        let ret = self
+            .client
+            .call("CommitBlockInfoTest", (blocks_data, i, j))
+            .await?;
+        Ok(from_slice(ret.as_slice())?)
     }
 
     async fn compressed_block_extra_info_test(
         &self,
-        _blocks_extra_data: Vec<CompressedBlockExtraInfo>,
+        blocks_extra_data: Vec<CompressedBlockExtraInfo>,
         i: usize,
         j: usize,
     ) -> anyhow::Result<U256> {
-        unimplemented!("method not allowed")
+        let ret = self
+            .client
+            .call("CompressedBlockExtraInfoTest", (blocks_extra_data, i, j))
+            .await?;
+        Ok(from_slice(ret.as_slice())?)
     }
 
     async fn execute_block_info_test(
         &self,
-        _blocks_data: Vec<ExecuteBlockInfo>,
+        blocks_data: Vec<ExecuteBlockInfo>,
         i: usize,
         j: usize,
-        _op_type: u8,
+        op_type: u8,
     ) -> anyhow::Result<u8> {
-        unimplemented!("method not allowed")
-    }
-
-    async fn u256test(&self, _u256: U256) -> anyhow::Result<(u128, u128)> {
-        let ret = self.client.call("u256Test", _u256).await?;
-        Ok(from_slice::<(u128, u128)>(ret.as_slice())?)
-    }
-
-    async fn u256s_test(&self, _u256s: Vec<U256>, i: usize) -> anyhow::Result<(u128, u128)> {
-        let ret = self.client.call("u256sTest", (_u256s, i)).await?;
-        Ok(from_slice::<(u128, u128)>(ret.as_slice())?)
-    }
-
-    async fn u8s_test1(&self, _u8s: Vec<u8>) -> anyhow::Result<usize> {
-        let ret = self.client.call("u8sTest1", _u8s).await?;
+        let ret = self
+            .client
+            .call("ExecuteBlockInfoTest", (blocks_data, i, j, op_type))
+            .await?;
         Ok(from_slice(ret.as_slice())?)
     }
 
-    async fn u8s_test2(&self, _u8s: Vec<u8>) -> anyhow::Result<Vec<u8>> {
-        let ret = self.client.call("u8sTest2", _u8s).await?;
+    async fn u256test(&self, u256: U256) -> anyhow::Result<(u128, u128)> {
+        let ret = self.client.call("u256Test", u256).await?;
+        Ok(from_slice::<(u128, u128)>(ret.as_slice())?)
+    }
+
+    async fn u256s_test(&self, u256s: Vec<U256>, i: usize) -> anyhow::Result<(u128, u128)> {
+        let ret = self.client.call("u256sTest", (u256s, i)).await?;
+        Ok(from_slice::<(u128, u128)>(ret.as_slice())?)
+    }
+
+    async fn u8s_test1(&self, u8s: Vec<u8>) -> anyhow::Result<usize> {
+        let ret = self.client.call("u8sTest1", u8s).await?;
+        Ok(from_slice(ret.as_slice())?)
+    }
+
+    async fn u8s_test2(&self, u8s: Vec<u8>) -> anyhow::Result<Vec<u8>> {
+        let ret = self.client.call("u8sTest2", u8s).await?;
         Ok(from_slice(ret.as_slice())?)
     }
 }
