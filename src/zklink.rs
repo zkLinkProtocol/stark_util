@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use starknet_api::core::ContractAddress;
 
 use crate::client::StarkClient;
-use crate::contract::Contract;
+use crate::contract::{Callable, Contract};
 
 use crate::primitive::*;
 use crate::proto::*;
@@ -263,11 +263,19 @@ pub trait ZkLink {
     }
 }
 
-// TODO
-impl Contract for StarkClient {
-    type Handler = Box<dyn ZkLink>;
-
-    fn contract(&self) -> Self::Handler {
-        unimplemented!("todo")
+impl<'a, T, O> Contract<O> for &'a T
+where
+    &'a T: Into<O>,
+{
+    fn contract(&self) -> O {
+        (*self).into()
     }
 }
+
+struct ZkLinkContract<T> {
+    contract_address: FieldElement,
+    callable: T,
+}
+
+#[async_trait]
+impl<T: Callable> ZkLink for ZkLinkContract<T> {}
