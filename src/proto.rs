@@ -169,7 +169,7 @@ pub struct ChangePubKey {
 }
 
 // Token info stored in zkLink
-#[derive(Clone, Copy)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct Token {
     pub token_id: u16,                  // token id defined by zkLink
     pub token_address: ContractAddress, // token address in l1
@@ -178,7 +178,7 @@ pub struct Token {
 }
 
 // Recursive proof input data (individual commitments are constructed onchain)
-#[derive(Clone)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ProofInput {
     pub recursive_input: Vec<U256>,
     pub proof: Vec<U256>,

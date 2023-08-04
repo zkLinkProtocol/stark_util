@@ -1,6 +1,5 @@
 use crate::{der::reader::Reader, error::DecodeError};
 use starknet::core::types::FieldElement;
-use std::{fmt::Debug, ops::Add};
 
 pub fn u128_from_field_element(field_element: FieldElement) -> u128 {
     let data = field_element.to_bytes_be();

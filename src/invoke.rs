@@ -1,16 +1,11 @@
 use serde::Serialize;
 use starknet::{
-    accounts::{Account, Call, ConnectedAccount, SingleOwnerAccount},
-    core::{
-        types::{BlockId, BlockTag, FunctionCall},
-        utils::get_selector_from_name,
-    },
-    providers::Provider,
+    accounts::{Account, Call},
+    core::utils::get_selector_from_name,
 };
 
 use crate::{client::StarkClient, primitive::FieldElement, proto::TxHash, to_field_elements};
 
-// TODO
 pub struct Invoke<'a> {
     // owner
     client: &'a StarkClient,

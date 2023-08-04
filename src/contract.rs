@@ -1,11 +1,18 @@
-use crate::{client::StarkClient, decoder::Decode, FieldElement};
+use crate::{client::StarkClient, FieldElement};
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::proto::TxHash;
 
 // pub trait Contract<O> {
 //     fn contract(&self) -> O;
+// }
+
+// impl<'a, T, O> Contract<O> for &'a T where &'a T: Into<O>
+// {
+//     fn contract(&self) -> O {
+//         (*self).into()
+//     }
 // }
 
 // #[async_trait]
