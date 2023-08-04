@@ -1,8 +1,7 @@
-use crate::{client::StarkClient, FieldElement};
 use async_trait::async_trait;
 use serde::Serialize;
 
-use crate::proto::TxHash;
+use crate::{client::StarkClient, proto::TxHash, FieldElement};
 
 // pub trait Contract<O> {
 //     fn contract(&self) -> O;
@@ -17,8 +16,8 @@ use crate::proto::TxHash;
 
 // #[async_trait]
 // pub trait Callable {
-//     async fn call<T: Decode, O: Decode>(&self, contract_address: FieldElement, func_name: &str, calldata: T) -> anyhow::Result<O>;
-// }
+//     async fn call<T: Decode, O: Decode>(&self, contract_address:
+// FieldElement, func_name: &str, calldata: T) -> anyhow::Result<O>; }
 
 #[async_trait]
 pub trait Callable {

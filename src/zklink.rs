@@ -1,7 +1,8 @@
-use crate::{contract::Callable, from_slice, primitive::*, proto::*, U256};
 use anyhow::Result;
 use async_trait::async_trait;
 use starknet_api::core::ContractAddress;
+
+use crate::{contract::Callable, from_slice, primitive::*, proto::*, U256};
 
 #[async_trait]
 pub trait ZkLink {
@@ -113,8 +114,7 @@ impl<T: Callable + Sync + Send> ZkLink for T {
                            _sub_account_id: u8,
                            _mapping: bool)
                            -> Result<TxHash> {
-        self.invoke("depositERC20", (_token, _amount, _zk_link_address, _sub_account_id, _mapping))
-            .await
+        self.invoke("depositERC20", (_token, _amount, _zk_link_address, _sub_account_id, _mapping)).await
     }
 
     async fn transfer_erc20(&mut self,
@@ -135,6 +135,7 @@ impl<T: Callable + Sync + Send> ZkLink for T {
         self.invoke("activateExodusMode", ()).await
     }
 
+    #[rustfmt::skip]
     async fn perform_exodus(&mut self,
                             _stored_block_info: StoredBlockInfo,
                             _owner: ContractAddress,
@@ -145,9 +146,7 @@ impl<T: Callable + Sync + Send> ZkLink for T {
                             _amount: u128,
                             _proof: Vec<U256>)
                             -> Result<TxHash> {
-        self.invoke("performExodus",
-                    (_stored_block_info, _owner, _account_id, _sub_account_id, _withdraw_token_id, _deduct_token_id, _amount, _proof))
-            .await
+        self.invoke("performExodus", (_stored_block_info, _owner, _account_id, _sub_account_id, _withdraw_token_id, _deduct_token_id, _amount, _proof)).await
     }
 
     async fn set_auth_pubkey_hash(&mut self, _pubkey_hash: Felt252, _nonce: u32) -> Result<TxHash> {
@@ -174,9 +173,7 @@ impl<T: Callable + Sync + Send> ZkLink for T {
                                       _new_blocks_data: Vec<CommitBlockInfo>,
                                       _new_blocks_extra_data: Vec<CompressedBlockExtraInfo>)
                                       -> Result<TxHash> {
-        self.invoke("commitCompressedBlocks",
-                    (_last_committed_block_data, _new_blocks_data, _new_blocks_extra_data))
-            .await
+        self.invoke("commitCompressedBlocks", (_last_committed_block_data, _new_blocks_data, _new_blocks_extra_data)).await
     }
 
     async fn execute_blocks(&mut self, _blocks_data: Vec<ExecuteBlockInfo>) -> Result<TxHash> {
@@ -217,9 +214,7 @@ impl<T: Callable + Sync + Send> ZkLink for T {
                           _nonce: u32,
                           _amount_transfer: u128)
                           -> Result<TxHash> {
-        self.invoke("acceptERC20",
-                    (_accepter, _account_id, _receiver, _token_id, _amount, _withdraw_fee_rate, _nonce, _amount_transfer))
-            .await
+        self.invoke("acceptERC20", (_accepter, _account_id, _receiver, _token_id, _amount, _withdraw_fee_rate, _nonce, _amount_transfer)).await
     }
 
     async fn broker_allowance(&self, _token_id: u16, _accepter: ContractAddress, _broker: ContractAddress) -> Result<u128> {

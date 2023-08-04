@@ -1,6 +1,8 @@
-use crate::error::EncodeError;
-use starknet::core::types::FieldElement;
 use std::str::FromStr;
+
+use starknet::core::types::FieldElement;
+
+use crate::error::EncodeError;
 
 pub struct EncoderImpl {
     pub field_elements: Vec<FieldElement>,
@@ -49,7 +51,7 @@ impl Encode for bool {
 }
 
 macro_rules! impl_encode_for_num {
-    ($ty: ty) => {
+    ($ty:ty) => {
         impl Encode for $ty {
             fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
                 let f = FieldElement::from(*self);
@@ -147,11 +149,11 @@ impl<T, U> Encode for Result<T, U>
             Ok(val) => {
                 0u32.encode(encoder)?;
                 val.encode(encoder)
-            },
+            }
             Err(err) => {
                 1u32.encode(encoder)?;
                 err.encode(encoder)
-            },
+            }
         }
     }
 }

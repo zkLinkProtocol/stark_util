@@ -6,10 +6,11 @@ use crate::{
     ser::SerdeEncoder,
 };
 
-/// Wrapper struct that implements [Decode] and [Encode] on any type that implements serde's [DeserializeOwned] and [Serialize] respectively.
+/// Wrapper struct that implements [Decode] and [Encode] on any type that
+/// implements serde's [DeserializeOwned] and [Serialize] respectively.
 ///
-/// This works for most types, but if you're dealing with borrowed data consider using [BorrowCompat] instead.
-///
+/// This works for most types, but if you're dealing with borrowed data consider
+/// using [BorrowCompat] instead.
 pub struct Compat<T>(pub T);
 
 impl<T> Decode for Compat<T> where T: serde::de::DeserializeOwned

@@ -2,20 +2,24 @@ pub mod builder;
 pub mod call;
 pub mod client;
 pub mod contract;
-pub(crate) mod decoder;
-mod der;
-pub(crate) mod encoder;
 pub mod error;
 pub mod invoke;
 pub mod network;
 pub mod primitive;
 pub mod proto;
 pub mod provider;
-mod ser;
-mod serde;
 pub mod u256;
 pub mod zklink;
 pub mod zklink_test;
+pub(crate) mod decoder;
+pub(crate) mod encoder;
+mod der;
+mod ser;
+mod serde;
+
+use ::serde::{de::DeserializeOwned, Serialize};
+use starknet::core::types::FieldElement;
+pub use u256::U256;
 
 use crate::{
     decoder::DecoderImpl,
@@ -24,23 +28,19 @@ use crate::{
     error::{DecodeError, EncodeError},
     ser::SerdeEncoder,
 };
-use ::serde::{de::DeserializeOwned, Serialize};
-use starknet::core::types::FieldElement;
-pub use u256::U256;
 
 pub fn to_field_elements<T>(t: T) -> Result<Vec<FieldElement>, EncodeError>
-    where T: Serialize
-{
+    where T: Serialize {
     let mut encoder = EncoderImpl { field_elements: vec![] };
     let serializer = SerdeEncoder { enc: &mut encoder };
     t.serialize(serializer)?;
     Ok(encoder.field_elements)
 }
 
-/// Attempt to decode a given type `D` from the given slice. Returns the decoded output.
+/// Attempt to decode a given type `D` from the given slice. Returns the decoded
+/// output.
 pub fn from_slice<T>(slice: &[FieldElement]) -> Result<T, DecodeError>
-    where T: DeserializeOwned
-{
+    where T: DeserializeOwned {
     let reader = SliceReader::new(slice);
     let mut decoder = DecoderImpl::new(reader);
     let serde_decoder = SerdeDecoder { de: &mut decoder };
@@ -50,11 +50,13 @@ pub fn from_slice<T>(slice: &[FieldElement]) -> Result<T, DecodeError>
 
 #[cfg(test)]
 mod tests {
-    use crate::{from_slice, to_field_elements, u256::U256};
+    use std::str::FromStr;
+
     use primitive_types::U256 as PrimitiveU256;
     use serde::{Deserialize, Serialize};
     use starknet::core::types::FieldElement;
-    use std::str::FromStr;
+
+    use crate::{from_slice, to_field_elements, u256::U256};
 
     #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
     struct TestStruct {

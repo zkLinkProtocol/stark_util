@@ -1,6 +1,6 @@
 use std::str::FromStr;
-use url::Url;
 
+use url::Url;
 use anyhow::Result;
 use starknet::{
     accounts::SingleOwnerAccount,

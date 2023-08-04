@@ -1,5 +1,6 @@
-use crate::{der::reader::Reader, error::DecodeError};
 use starknet::core::types::FieldElement;
+
+use crate::{der::reader::Reader, error::DecodeError};
 
 pub fn u128_from_field_element(field_element: FieldElement) -> u128 {
     let data = field_element.to_bytes_be();
@@ -46,8 +47,7 @@ pub struct DecoderImpl<R> {
 impl<R: Reader> DecoderImpl<R> {
     /// Construct a new Decoder
     pub fn new(reader: R) -> DecoderImpl<R> {
-        DecoderImpl { reader,
-                      field_elements_read: 0 }
+        DecoderImpl { reader, field_elements_read: 0 }
     }
 }
 
@@ -90,7 +90,7 @@ impl Decode for bool {
 }
 
 macro_rules! impl_decode_for_unsigned_num {
-    ($ty: ty) => {
+    ($ty:ty) => {
         impl Decode for $ty {
             #[inline]
             fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
@@ -109,7 +109,7 @@ macro_rules! impl_decode_for_unsigned_num {
 }
 
 macro_rules! impl_decode_with_error {
-    ($ty: ty, $name: expr) => {
+    ($ty:ty, $name:expr) => {
         impl Decode for $ty {
             #[inline]
             fn decode<D: Decoder>(_decoder: &mut D) -> Result<Self, DecodeError> {
@@ -170,11 +170,7 @@ impl Decode for String {
             decoder.reader().consume(1);
             let s = hex::encode(element.to_bytes_be());
             let s = s.trim_start_matches('0');
-            if !s.starts_with("0x") {
-                Ok(String::from("0x") + s)
-            } else {
-                Ok(s.into())
-            }
+            if !s.starts_with("0x") { Ok(String::from("0x") + s) } else { Ok(s.into()) }
         } else {
             Err(DecodeError::OutOfRange)
         }
@@ -200,7 +196,8 @@ impl<T> Decode for core::marker::PhantomData<T> {
     }
 }
 
-/// Decodes only the option variant from the decoder. Will not read any more data than that.
+/// Decodes only the option variant from the decoder. Will not read any more
+/// data than that.
 #[inline]
 pub fn decode_option_variant<D: Decoder>(decoder: &mut D, _type_name: &'static str) -> Result<Option<()>, DecodeError> {
     let is_some = u8::decode(decoder)?;
@@ -218,7 +215,7 @@ impl<T> Decode for Option<T> where T: Decode
             Some(_) => {
                 let val = T::decode(decoder)?;
                 Ok(Some(val))
-            },
+            }
             None => Ok(None),
         }
     }
@@ -234,11 +231,11 @@ impl<T, U> Decode for Result<T, U>
             0 => {
                 let t = T::decode(decoder)?;
                 Ok(Ok(t))
-            },
+            }
             1 => {
                 let u = U::decode(decoder)?;
                 Ok(Err(u))
-            },
+            }
             _ => Err(DecodeError::OutOfRange),
         }
     }
@@ -259,8 +256,9 @@ impl<T> Decode for Vec<T> where T: Decode
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use starknet::core::types::FieldElement;
+
+    use super::*;
 
     #[test]
     fn test_num_to_field_element() {

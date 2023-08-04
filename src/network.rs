@@ -2,7 +2,6 @@ use std::{fmt::Display, str::FromStr};
 
 use anyhow::Result;
 use async_trait::async_trait;
-
 use starknet::{
     core::{chain_id, types::FieldElement},
     providers::Provider,
@@ -72,11 +71,7 @@ impl NetworkSource for ExtendedProvider {
         let is_integration = self.is_integration();
 
         Ok(if is_integration {
-            if chain_id == chain_id::TESTNET {
-                Some(Network::Integration)
-            } else {
-                None
-            }
+            if chain_id == chain_id::TESTNET { Some(Network::Integration) } else { None }
         } else if chain_id == chain_id::MAINNET {
             Some(Network::Mainnet)
         } else if chain_id == chain_id::TESTNET {

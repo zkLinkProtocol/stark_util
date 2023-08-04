@@ -1,17 +1,21 @@
-use crate::error::DecodeError;
 use starknet::core::types::FieldElement;
+
+use crate::error::DecodeError;
 
 /// A reader for owned data. See the module documentation for more information.
 pub trait Reader {
-    /// Fill the given `bytes` argument with values. Exactly the length of the given slice must be filled, or else an error must be returned.
+    /// Fill the given `bytes` argument with values. Exactly the length of the
+    /// given slice must be filled, or else an error must be returned.
     fn read(&mut self, bytes: &mut [FieldElement]) -> Result<(), DecodeError>;
 
-    /// If this reader wraps a buffer of any kind, this function lets callers access contents of
-    /// the buffer without passing data through a buffer first.
+    /// If this reader wraps a buffer of any kind, this function lets callers
+    /// access contents of the buffer without passing data through a buffer
+    /// first.
     fn peek_read(&mut self, _: usize) -> Option<&[FieldElement]>;
 
-    /// If an implementation of `peek_read` is provided, an implementation of this function
-    /// must be provided so that subsequent reads or peek-reads do not return the same bytes
+    /// If an implementation of `peek_read` is provided, an implementation of
+    /// this function must be provided so that subsequent reads or
+    /// peek-reads do not return the same bytes
     fn consume(&mut self, _: usize);
 }
 
@@ -33,7 +37,8 @@ impl<T> Reader for &mut T where T: Reader
     }
 }
 
-/// A reader type for `&[FieldElement]` slices. Implements both [Reader] and [BorrowReader], and thus can be used for borrowed data.
+/// A reader type for `&[FieldElement]` slices. Implements both [Reader] and
+/// [BorrowReader], and thus can be used for borrowed data.
 pub struct SliceReader<'storage> {
     pub(crate) slice: &'storage [FieldElement],
 }

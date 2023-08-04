@@ -19,15 +19,13 @@ impl<'a> From<&'a StarkClient> for Invoke<'a> {
 
 impl<'a> Invoke<'a> {
     pub async fn invoke<T>(&self, contract_address: FieldElement, func_name: &str, calldata: T) -> anyhow::Result<TxHash>
-        where T: Serialize
-    {
-        let result = self.client
-                         .owner()
-                         .execute(vec![Call { to: contract_address,
-                                              selector: get_selector_from_name(func_name)?,
-                                              calldata: to_field_elements(calldata)? }])
-                         .send()
-                         .await?;
+        where T: Serialize {
+        let result =
+            self.client
+                .owner()
+                .execute(vec![Call { to: contract_address, selector: get_selector_from_name(func_name)?, calldata: to_field_elements(calldata)? }])
+                .send()
+                .await?;
         Ok(result.transaction_hash.into())
     }
 }

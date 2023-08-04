@@ -112,7 +112,8 @@ pub struct FullExit {
     pub chain_id: u8,
     /// 4 bytes, the account id to withdraw from
     pub account_id: u32,
-    /// 1 byte, the sub account is bound to account, default value is 0(the global public sub account)
+    /// 1 byte, the sub account is bound to account, default value is 0(the
+    /// global public sub account)
     pub sub_account_id: u8,
     /// 32 bytes, the address that own the account at l2
     pub owner: String,
@@ -120,7 +121,8 @@ pub struct FullExit {
     pub token_id: u16,
     /// 2 bytes, the token that deducted in l2
     pub src_token_id: u16,
-    /// 16 bytes, the token amount that fully withdrawn to owner, ignored at serialization and will be set when the block is submitted
+    /// 16 bytes, the token amount that fully withdrawn to owner, ignored at
+    /// serialization and will be set when the block is submitted
     pub amount: u128,
 }
 
@@ -136,7 +138,8 @@ pub struct Withdraw {
     pub amount: u128,
     /// 32 bytes, the address to receive token
     pub owner: String,
-    /// 4 bytes, zero means normal withdraw, not zero means fast withdraw and the value is the account nonce
+    /// 4 bytes, zero means normal withdraw, not zero means fast withdraw and
+    /// the value is the account nonce
     pub nonce: u32,
     /// 2 bytes, fast withdraw fee rate taken by accepter
     pub fast_withdraw_fee_rate: u16,
@@ -156,7 +159,8 @@ pub struct ForcedExit {
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct ChangePubKey {
-    /// 1 byte, which chain to verify(only one chain need to verify for gas saving)
+    /// 1 byte, which chain to verify(only one chain need to verify for gas
+    /// saving)
     pub chain_id: u8,
     /// 4 bytes, the account that to change pubkey
     pub account_id: u32,
@@ -201,8 +205,7 @@ mod test {
 
     #[test]
     fn test_serde_bytes() {
-        let b = Bytes { size: 1,
-                        data: vec![1, 2, 3] };
+        let b = Bytes { size: 1, data: vec![1, 2, 3] };
         let elements = to_field_elements(b.clone()).unwrap();
         assert_eq!(elements.len(), 5);
         let b2 = from_slice(&elements).unwrap();

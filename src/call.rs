@@ -23,8 +23,7 @@ impl<'a> From<&'a StarkClient> for Call<'a> {
 
 impl<'a> Call<'a> {
     pub async fn call<T>(&self, contract_address: FieldElement, func_name: &str, calldata: T) -> anyhow::Result<Vec<FieldElement>>
-        where T: Serialize
-    {
+        where T: Serialize {
         Ok(self.client
                .owner()
                .provider()

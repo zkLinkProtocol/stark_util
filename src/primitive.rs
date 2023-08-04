@@ -1,4 +1,4 @@
-pub use starknet::core::types::FieldElement;
+#[rustfmt::skip]
 /// A list of primitive types in Cairo (not all), along with a brief description of each type’s purpose and functionality:
 /// Primitive Type	         Description
 /// u8                       Represents an unsigned 8-bit integer.
@@ -15,5 +15,7 @@ pub use starknet::core::types::FieldElement;
 /// Option<T>                Represents a value that may or may not be present, used for optional values and error handling.
 /// Result<T, E>             Represents the outcome of a computation that may result in an error, used for error handling and control flow.
 /// Array<T>                 A dynamic array data structure for elements of type T, used for creating and manipulating arrays.
+
+pub use starknet::core::types::FieldElement;
 pub use starknet_api::core::ContractAddress;
 pub type Felt252 = FieldElement;

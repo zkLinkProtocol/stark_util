@@ -7,21 +7,22 @@ use crate::{contract::Callable, from_slice, proto::*, u256::U256};
 #[async_trait]
 pub trait ZkLinkTest {
     // =============Test Interface=============
-    // TODO only test
-    async fn stored_block_info_test(&self, _blocks_data: Vec<StoredBlockInfo>, i: usize) -> Result<u64>;
+    // Only test
+    async fn stored_block_info_test(&self, blocks_data: Vec<StoredBlockInfo>, i: usize) -> Result<u64>;
 
-    async fn commit_block_info_test(&self, _blocks_data: Vec<CommitBlockInfo>, i: usize, j: usize) -> Result<usize>;
+    async fn commit_block_info_test(&self, blocks_data: Vec<CommitBlockInfo>, i: usize, j: usize) -> Result<usize>;
 
-    async fn compressed_block_extra_info_test(&self, _blocks_extra_data: Vec<CompressedBlockExtraInfo>, i: usize, j: usize) -> Result<U256>;
+    async fn compressed_block_extra_info_test(&self, blocks_extra_data: Vec<CompressedBlockExtraInfo>, i: usize, j: usize) -> Result<U256>;
 
-    async fn execute_block_info_test(&self, _blocks_data: Vec<ExecuteBlockInfo>, i: usize, j: usize, _op_type: u8) -> Result<u8>;
-    async fn u256test(&self, _u256: U256) -> Result<(u128, u128)>;
+    async fn execute_block_info_test(&self, blocks_data: Vec<ExecuteBlockInfo>, i: usize, j: usize, op_type: u8) -> Result<u8>;
 
-    async fn u256s_test(&self, _u256s: Vec<U256>, i: usize) -> Result<(u128, u128)>;
+    async fn u256test(&self, u256: U256) -> Result<(u128, u128)>;
 
-    async fn u8s_test1(&self, _u8s: Vec<u8>) -> Result<usize>;
+    async fn u256s_test(&self, u256s: Vec<U256>, i: usize) -> Result<(u128, u128)>;
 
-    async fn u8s_test2(&self, _u8s: Vec<u8>) -> Result<Vec<u8>>;
+    async fn u8s_test1(&self, u8s: Vec<u8>) -> Result<usize>;
+
+    async fn u8s_test2(&self, u8s: Vec<u8>) -> Result<Vec<u8>>;
 }
 
 #[async_trait]
