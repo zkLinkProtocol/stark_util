@@ -77,10 +77,13 @@ impl<T: Callable + Sync> Counter for T {
 #[tokio::test]
 async fn test_counter_contract() {
     let counter = contract().unwrap();
-    let _value = counter.get_counter().await.unwrap();
-    // sleep(Duration::from_secs(1));
+    assert!(counter.get_counter().await.is_ok());
     assert!(counter.incr().await.is_ok());
+    assert!(counter.dec().await.is_ok());
     let address = FieldElement::from_str(ACCOUNT).unwrap();
     let is = counter.is_registered(address).await.unwrap();
-    assert!(is)
+    assert!(is);
+    let address = FieldElement::from_str(COUNTER_CONTRACT_ADDRESS).unwrap();
+    let info = counter.get_counter_status().await.unwrap();
+    assert_eq!(info.contract_address, address);
 }
