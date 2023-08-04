@@ -27,6 +27,7 @@ pub trait ZkLink {
 
     async fn activate_exodus_mode(&mut self) -> Result<TxHash>;
 
+    #[allow(clippy::too_many_arguments)]
     async fn perform_exodus(&mut self,
                             _stored_block_info: StoredBlockInfo,
                             _owner: ContractAddress,
@@ -70,6 +71,7 @@ pub trait ZkLink {
     async fn sync_blocks(&mut self, _block: StoredBlockInfo) -> Result<TxHash>;
 
     // =================Fast withdraw and Accept===============
+    #[allow(clippy::too_many_arguments)]
     async fn accept_erc20(&mut self,
                           _accepter: ContractAddress,
                           _account_id: u32,

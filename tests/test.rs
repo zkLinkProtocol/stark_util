@@ -1,4 +1,4 @@
-use std::{str::FromStr, thread::sleep, time::Duration};
+use std::str::FromStr;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -12,6 +12,7 @@ use stark_util::{
 };
 
 const PRIVATE_KEY: &str = "0x029d821d79d49716c0760c79a3258f25c84875476cd7db2afce1856162715976";
+#[allow(dead_code)]
 const PUBLIC_KEY: &str = "0x2abb6a1b2cd549fdf87835d1c04a8c156ac4d42441b5b7fcb1386768558a7be";
 const ACCOUNT: &str = "0x5686c52b6f38639eb9cfb3dfff1b3260315099aa045fcc0b4a865068ba36aad";
 
@@ -137,7 +138,7 @@ async fn test_counter_contract() {
     let client = stark_client().unwrap();
     let contract_address = FieldElement::from_str(COUNTER_CONTRACT_ADDRESS).unwrap();
     let counter = Contract::new(client, contract_address);
-    let value = counter.get_counter().await.unwrap();
+    let _value = counter.get_counter().await.unwrap();
     // sleep(Duration::from_secs(1));
     assert!(counter.incr().await.is_ok());
     let address = FieldElement::from_str(ACCOUNT).unwrap();
@@ -145,64 +146,3 @@ async fn test_counter_contract() {
     assert!(is)
 }
 
-// #[starknet::interface]
-// trait IZklink<TContractState> {
-//     fn depositERC20(ref self: TContractState, _token: ContractAddress,
-// _amount: u128, _zkLinkAddress: ContractAddress, _subAccountId: u8, _mapping:
-// bool);     fn transferERC20(ref self: TContractState, _token:
-// ContractAddress, _to: ContractAddress, _amount: u128, _maxAmount:
-// u128, _isStandard: bool) -> u128;     fn acceptERC20(ref self:
-// TContractState, _accepter: ContractAddress, _accountId: u32, _receiver:
-// ContractAddress, _tokenId: u16, _amount: u128, _withdrawFeeRate: u16, _nonce:
-// u32, _amountTransfer: u128);     fn requestFullExit(ref self: TContractState,
-// _accountId: u32, _subAccountId: u8, _tokenId: u16, _mapping: bool);
-//     fn activateExodusMode(ref self: TContractState);
-//     fn performExodus(ref self: TContractState, _storedBlockInfo:
-// StoredBlockInfo, _owner: ContractAddress, _accountId: u32, _subAccountId: u8,
-// _withdrawTokenId: u16, _deductTokenId: u16, _amount: u128, _proof:
-// Array<u256>);     fn cancelOutstandingDepositsForExodusMode(ref self:
-// TContractState, _n: u64, _depositsPubdata: Array<Bytes>);     fn
-// setAuthPubkeyHash(ref self: TContractState, _pubkeyHash: felt252, _nonce:
-// u32);     fn withdrawPendingBalance(ref self: TContractState, _owner:
-// ContractAddress, _tokenId: u16, _amount: u128) -> u128;
-//     fn commitBlocks(ref self: TContractState, _lastCommittedBlockData:
-// StoredBlockInfo, _newBlocksData: Array<CommitBlockInfo>);     fn
-// commitCompressedBlocks(ref self: TContractState, _lastCommittedBlockData:
-// StoredBlockInfo, _newBlocksData: Array<CommitBlockInfo>, _newBlocksExtraData:
-// Array<CompressedBlockExtraInfo>);     fn executeBlocks(ref self:
-// TContractState, _blocksData: Array<ExecuteBlockInfo>);     fn proveBlocks(ref
-// self: TContractState, _committedBlocks: Array<StoredBlockInfo>, _proof:
-// ProofInput);     fn revertBlocks(ref self: TContractState, _blocksToRevert:
-// Array<StoredBlockInfo>);     fn receiveSynchronizationProgress(ref self:
-// TContractState, _syncHash: u256, _progress: u256);     fn syncBlocks(ref
-// self: TContractState, _block: StoredBlockInfo);     fn brokerApprove(ref
-// self: TContractState, _tokenId: u16, _broker: ContractAddress, _amount: u128)
-// -> bool;     fn changeGovernor(ref self: TContractState, _newGovernor:
-// ContractAddress);     fn addToken(ref self: TContractState, _tokenId: u16,
-// _tokenAddress: ContractAddress, _decimals: u8, _standard: bool);     fn
-// addTokens(ref self: TContractState, _tokenList: Array<Token>);     fn
-// setTokenPaused(ref self: TContractState, _tokenId: u16, _tokenPaused: bool);
-// fn setValidator(ref self: TContractState, _validator: ContractAddress,
-// _active: bool);     fn addBridge(ref self: TContractState, _bridge:
-// ContractAddress) -> usize;     fn updateBridge(ref self: TContractState,
-// _index: usize, _enableBridgeTo: bool, _enableBridgeFrom: bool);     fn
-// getSynchronizedProgress(self: @TContractState, _block: StoredBlockInfo) ->
-// u256;     fn brokerAllowance(self: @TContractState, _tokenId: u16, _accepter:
-// ContractAddress, _broker: ContractAddress) -> u128;     fn
-// getPendingBalance(self: @TContractState, _address: ContractAddress, _tokenId:
-// u16) -> u128;     fn isBridgeToEnabled(self: @TContractState, _bridge:
-// ContractAddress) -> bool;     fn isBridgeFromEnabled(self: @TContractState,
-// _bridge: ContractAddress) -> bool;
-//
-//     fn StoredBlockInfoTest(self: @TContractState, _blocksData:
-// Array<StoredBlockInfo>, i: usize) -> u64;     fn CommitBlockInfoTest(self:
-// @TContractState, _blocksData: Array<CommitBlockInfo>, i: usize, j: usize) ->
-// usize;     fn CompressedBlockExtraInfoTest(self: @TContractState,
-// _blocksExtraData: Array<CompressedBlockExtraInfo>, i: usize, j: usize) ->
-// u256;     fn ExecuteBlockInfoTest(self: @TContractState, _blocksData:
-// Array<ExecuteBlockInfo>, i: usize, j: usize, _opType: u8) -> u8;     fn
-// u256Test(self: @TContractState, _u256: u256) -> (u128, u128);     fn
-// u256sTest(self: @TContractState, _u256s: Array<u256>, i: usize) -> (u128,
-// u128);     fn u8sTest1(self: @TContractState, _u8s: Array<u8>) -> usize;
-//     fn u8sTest2(self: @TContractState, _u8s: Array<u8>) -> Array<u8>;
-// }

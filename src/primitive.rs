@@ -1,3 +1,4 @@
+#![allow(clippy::tabs_in_doc_comments)]
 #[rustfmt::skip]
 /// A list of primitive types in Cairo (not all), along with a brief description of each type’s purpose and functionality:
 /// Primitive Type	         Description

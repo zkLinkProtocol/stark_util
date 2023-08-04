@@ -9,23 +9,18 @@ use starknet::{
 
 use crate::provider::ExtendedProvider;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub enum Network {
     Mainnet,
+    #[default]
     Goerli1,
     Goerli2,
     Integration,
 }
 
-impl Default for Network {
-    fn default() -> Self {
-        Network::Goerli1
-    }
-}
-
-impl Into<FieldElement> for Network {
-    fn into(self) -> FieldElement {
-        match self {
+impl From<Network> for FieldElement {
+    fn from(net: Network) -> FieldElement {
+        match net {
             Network::Mainnet => chain_id::MAINNET,
             Network::Goerli1 => chain_id::TESTNET,
             Network::Goerli2 => chain_id::TESTNET2,
