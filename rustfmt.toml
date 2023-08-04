@@ -13,7 +13,7 @@ reorder_modules = false
 merge_derives = true
 where_single_line = true
 # fn_call_width = 120
-wrap_comments=true
+wrap_comments=false
 condense_wildcard_suffixes=true
 format_macro_matchers=true
 

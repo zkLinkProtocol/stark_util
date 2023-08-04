@@ -1,5 +1,6 @@
 #![allow(clippy::tabs_in_doc_comments)]
 #![allow(clippy::module_inception)]
+
 #[rustfmt::skip]
 /// A list of primitive types in Cairo (not all), along with a brief description of each type’s purpose and functionality:
 /// Primitive Type	         Description
@@ -21,4 +22,21 @@
 
 pub use starknet::core::types::FieldElement;
 pub use starknet_api::core::ContractAddress;
+
+/// https://github.com/lambdaclass/cairo-vm/blob/main/felt/src/lib.rs
+/// https://github.com/lambdaclass/cairo-vm/blob/main/felt/src/bigint_felt.rs
 pub type Felt252 = FieldElement;
+
+// https://github.com/lambdaclass/lambdaworks/blob/main/math/src/unsigned_integer/traits.rs
+// u8
+// usize
+// u16
+// u32
+// u64
+// u128
+// u256
+// bool
+// Felt252
+// ContractAddress
+
+// serde
