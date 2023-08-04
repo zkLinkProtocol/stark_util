@@ -21,6 +21,14 @@ impl Contract {
     pub fn new(client: StarkClient, address: FieldElement) -> Self {
         Contract { client, address }
     }
+
+    pub fn set_address(&mut self, address: FieldElement) {
+        self.address = address
+    }
+
+    pub fn stark_client(&self) -> &StarkClient {
+        &self.client
+    }
 }
 
 #[async_trait]

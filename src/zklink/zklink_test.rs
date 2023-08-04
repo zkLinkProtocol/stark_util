@@ -68,3 +68,119 @@ impl<T: Callable + Sync> ZkLinkTest for T {
         Ok(from_slice(ret.as_slice())?)
     }
 }
+
+// #[cfg(test)]
+// mod test {
+//     use crate::{
+//         builder::Builder,
+//         client::StarkClient,
+//         network::Network,
+//         proto::{Bytes, CommitBlockInfo, CompressedBlockExtraInfo, ExecuteBlockInfo, OnchainOperationData, StoredBlockInfo, TxHash},
+//         u256::PrimitiveU256,
+//         U256,
+//     };
+//
+//     fn client() -> StarkClient {
+//         let web3_url = "http://127.0.0.1:5050";
+//         let private_key_hex = "6fb84183efc4de5a4707ac7ad487d5e1db4ec34a2c1500ee25fe6ab29940462";
+//         let address = "0x13528b84b5a4ed4a7aff3b3a27363565f38608499f1404f73e15c11fce9aa5d";
+//         let contract_address = "0x474c2b5858139a7d7f20e71f836fc98f130c2c2992888433fbdce742a95d564";
+//         let network = Network::Goerli1;
+//         use crate::builder::Builder;
+//         let client = Builder::new().set_network(network)?.set_url(web3_url)?.set_owner_address(address)?.set_private_key(private_key_hex)?.build();
+//         client.unwrap()
+//     }
+//
+//     #[tokio::test]
+//     async fn test_u128_list() {
+//         let r = client().test_u128_list(vec![1u128], 0).await;
+//         println!("{:?}", r);
+//         assert!(r.is_ok());
+//     }
+//
+//     #[tokio::test]
+//     async fn test_u256_list() {
+//         let r = client().test_u256_list(vec![PrimitiveU256::from(1u8).into()], 0).await;
+//         println!("{:?}", r);
+//         assert!(r.is_ok());
+//     }
+//
+//     #[tokio::test]
+//     async fn test_u8_array() {
+//         let r = client().test_u8_array(vec![1, 2, 3, 4, 5, 6, 7, 8, 9]).await;
+//         println!("{:?}", r);
+//         assert!(r.is_ok());
+//     }
+//
+//     #[tokio::test]
+//     async fn test_bytes_list() {
+//         let b1 = Bytes { size: 1, data: vec![1, 2, 3] };
+//         let b2 = Bytes::default();
+//         let r = client().test_bytes_list(vec![b1, b2], 1).await;
+//         println!("{r:?}");
+//         assert!(r.is_ok());
+//     }
+//
+//     #[tokio::test]
+//     async fn test_stored_block_info() {
+//         let info = StoredBlockInfo { block_number: 1,
+//                                      priority_operations: 1,
+//                                      pending_onchain_operations_hash: PrimitiveU256::from(2).into(),
+//                                      timestamp: 3,
+//                                      state_hash: PrimitiveU256::from(4u8).into(),
+//                                      commitment: PrimitiveU256::from(5u8).into(),
+//                                      sync_hash: PrimitiveU256::from(6u8).into() };
+//         let r = client().test_stored_block_info(vec![info], 0).await;
+//         println!("{r:?}");
+//         assert!(r.is_ok());
+//     }
+//
+//     #[tokio::test]
+//     async fn test_compressed_block_extra_info() {
+//         let info = CompressedBlockExtraInfo { public_data_hash: PrimitiveU256::from(1u8).into(),
+//                                               offset_commitment_hash: PrimitiveU256::from(2u8).into(),
+//                                               onchain_operation_pubdata_hashs: vec![PrimitiveU256::from(1u8).into(),
+//                                                                                     PrimitiveU256::from(2u8).into(),] };
+//         let r = client().test_compressed_block_extra_info(vec![info], 0, 0).await;
+//         println!("{:?}", r);
+//         assert!(r.is_ok());
+//     }
+//
+//     #[tokio::test]
+//     async fn test_commit_block_info() {
+//         let op = OnchainOperationData { eth_witness: Bytes::default(), public_data_offset: 2 };
+//         let info = CommitBlockInfo { new_state_hash: PrimitiveU256::from(1u8).into(),
+//                                      public_data: Bytes::default(),
+//                                      timestamp: 2,
+//                                      onchain_operations: vec![op],
+//                                      block_number: 3,
+//                                      fee_account: 4 };
+//         println!("{info:?}");
+//         let r = client().test_commit_block_info(vec![info], 0, 0).await;
+//         println!("{:?}", r);
+//         assert!(r.is_ok());
+//     }
+//
+//     #[tokio::test]
+//     async fn test_execute_block_info() {
+//         let stored_block_info = StoredBlockInfo { block_number: 1,
+//                                                   priority_operations: 2,
+//                                                   pending_onchain_operations_hash: PrimitiveU256::from(3u8).into(),
+//                                                   timestamp: 4,
+//                                                   state_hash: PrimitiveU256::from(5u8).into(),
+//                                                   commitment: PrimitiveU256::from(6u8).into(),
+//                                                   sync_hash: PrimitiveU256::from(7u8).into() };
+//
+//         let r = client().test_stored_block_info(vec![stored_block_info.clone()], 0).await;
+//         println!("{:?}", r);
+//         assert!(r.is_ok());
+//
+//         let info = ExecuteBlockInfo { stored_block_info, pending_onchain_ops_pubdata: vec![Bytes { size: 2, data: vec![1, 2] }] };
+//         let r = client().test_execute_block_info2(vec![info.clone()], 0, 0, 1).await;
+//         println!("{:?}", r);
+//         assert!(r.is_ok());
+//         let r = client().test_execute_block_info(vec![info], 0, 0, 1).await;
+//         println!("{r:?}");
+//         assert!(r.is_ok());
+//     }
+// }

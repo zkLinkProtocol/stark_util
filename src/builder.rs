@@ -8,7 +8,10 @@ use starknet::{
     signers::{LocalWallet, SigningKey},
 };
 
-use crate::provider::{Network, ProviderArgs, StarkClient};
+use crate::{
+    provider::{Network, ProviderArgs, StarkClient},
+    Contract,
+};
 
 /// build contract
 #[derive(Clone, Default, Debug)]
@@ -53,7 +56,7 @@ impl Builder {
         Ok(self)
     }
 
-    pub fn build(self) -> Result<StarkClient> {
+    pub fn build(self) -> Result<Contract> {
         let provider = if self.is_rpc {
             let url = self.url.expect("url error");
             ProviderArgs::Rpc(url).into()
@@ -68,6 +71,6 @@ impl Builder {
         let wallet = LocalWallet::from(SigningKey::from_secret_scalar(self.private_key));
         let owner = SingleOwnerAccount::new(provider, wallet, self.owner_address, self.network.into());
 
-        Ok(StarkClient::new(owner, self.owner_address))
+        Ok(Contract::new(StarkClient::new(owner), self.contract_address))
     }
 }
