@@ -1,6 +1,6 @@
 use starknet::core::types::FieldElement;
 
-use crate::error::DecodeError;
+use super::DecodeError;
 
 /// A reader for owned data. See the module documentation for more information.
 pub trait Reader {

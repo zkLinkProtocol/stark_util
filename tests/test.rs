@@ -4,11 +4,11 @@ use anyhow::Result;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use stark_util::{
-    builder, client,
-    contract::{Callable, Contract},
+    contract::Callable,
     from_slice,
-    primitive::FieldElement,
-    proto::TxHash,
+    primitive::{FieldElement, TxHash},
+    provider::StarkClient,
+    Builder, Contract,
 };
 
 const PRIVATE_KEY: &str = "0x029d821d79d49716c0760c79a3258f25c84875476cd7db2afce1856162715976";
@@ -22,8 +22,8 @@ const ACCOUNT3: &str = "0x065f81fa8f222be104e463afc51bc97ea0d93d21e0bbfbfdca18c7
 const VOTE_CONTRACT_ADDRESS: &str = "0x03f99846b75acbe56129d5137403697774e681a35b9bf6f19cd59cb2fa62299c";
 const COUNTER_CONTRACT_ADDRESS: &str = "0x0311bb7385271f9fa3754218f4bf097a784c308da898df405b84d571f5ed7468";
 
-fn stark_client() -> Result<client::StarkClient> {
-    let builder = builder::Builder::new();
+fn stark_client() -> Result<StarkClient> {
+    let builder = Builder::new();
     builder.set_private_key(PRIVATE_KEY)?.set_owner_address(ACCOUNT)?.set_contract_address(VOTE_CONTRACT_ADDRESS)?.build()
 }
 
@@ -145,4 +145,3 @@ async fn test_counter_contract() {
     let is = counter.is_registered(address).await.unwrap();
     assert!(is)
 }
-

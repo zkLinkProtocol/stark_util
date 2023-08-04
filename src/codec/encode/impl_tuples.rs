@@ -1,7 +1,4 @@
-use crate::{
-    encoder::{Encode, Encoder},
-    error::EncodeError,
-};
+use super::{Encode, EncodeError, Encoder};
 
 impl<A> Encode for (A,) where A: Encode
 {

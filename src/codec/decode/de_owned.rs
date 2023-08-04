@@ -3,12 +3,12 @@ use serde::{
     Deserializer,
 };
 
-use crate::{
+use super::{
     decoder::{decode_option_variant, Decode, Decoder},
-    error::DecodeError,
+    DecodeError,
 };
 
-pub(crate) struct SerdeDecoder<'a, DE: Decoder> {
+pub struct SerdeDecoder<'a, DE: Decoder> {
     pub(crate) de: &'a mut DE,
 }
 

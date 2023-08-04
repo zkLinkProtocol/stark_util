@@ -1,3 +1,5 @@
+#![allow(clippy::module_inception)]
+
 use anyhow::Result;
 use async_trait::async_trait;
 use starknet::{
@@ -6,7 +8,7 @@ use starknet::{
 };
 use url::Url;
 
-use crate::network::Network;
+use super::Network;
 
 pub enum ProviderArgs {
     Rpc(Url),

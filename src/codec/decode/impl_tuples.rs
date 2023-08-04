@@ -1,6 +1,6 @@
-use crate::{
+use super::{
     decoder::{Decode, Decoder},
-    error::DecodeError,
+    DecodeError,
 };
 
 impl<A> Decode for (A,) where A: Decode

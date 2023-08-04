@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use starknet::core::types::FieldElement;
 
-use crate::error::EncodeError;
+use super::EncodeError;
 
 pub struct EncoderImpl {
     pub field_elements: Vec<FieldElement>,
@@ -26,7 +26,7 @@ impl Encoder for EncoderImpl {
 }
 
 #[inline]
-pub(crate) fn encode_option_variant<E: Encoder, T>(encoder: &mut E, value: &Option<T>) -> Result<(), EncodeError> {
+pub fn encode_option_variant<E: Encoder, T>(encoder: &mut E, value: &Option<T>) -> Result<(), EncodeError> {
     match value {
         None => 0u8.encode(encoder),
         Some(_) => 1u8.encode(encoder),

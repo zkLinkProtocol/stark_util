@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{primitive::*, U256};
+use crate::primitive::*;
 
 // TODO: change some struct to this type of Bytes
 // TODO: rename Bytes
@@ -10,30 +10,6 @@ pub struct Bytes {
     pub size: usize,
     /// the data of the Bytes
     pub data: Vec<u128>,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
-pub struct TxHash(FieldElement);
-
-impl From<TxHash> for String {
-    fn from(value: TxHash) -> Self {
-        let raw = value.0.to_bytes_be();
-        let s = hex::encode(raw);
-        let s = s.trim_start_matches('0');
-        s.into()
-    }
-}
-
-impl From<FieldElement> for TxHash {
-    fn from(value: FieldElement) -> Self {
-        Self(value)
-    }
-}
-
-impl AsRef<FieldElement> for TxHash {
-    fn as_ref(&self) -> &FieldElement {
-        &self.0
-    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
@@ -194,7 +170,7 @@ pub struct ProofInput {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{from_slice, to_field_elements, u256::PrimitiveU256};
+    use crate::{from_slice, primitive::PrimitiveU256, to_field_elements};
 
     #[test]
     fn test_tx_hash() {

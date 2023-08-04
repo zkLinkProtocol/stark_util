@@ -9,7 +9,7 @@ use starknet::{
     signers::LocalWallet,
 };
 
-use crate::{proto::TxHash, provider::ExtendedProvider, to_field_elements};
+use crate::{primitive::TxHash, provider::ExtendedProvider, to_field_elements};
 
 pub struct StarkClient {
     owner: SingleOwnerAccount<ExtendedProvider, LocalWallet>,

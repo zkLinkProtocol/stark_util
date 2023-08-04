@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use serde::Serialize;
 use starknet::{
     accounts::ConnectedAccount,
@@ -8,7 +10,7 @@ use starknet::{
     providers::Provider,
 };
 
-use crate::{client::StarkClient, primitive::FieldElement, to_field_elements};
+use crate::{primitive::FieldElement, provider::StarkClient, to_field_elements};
 
 pub struct Call<'a> {
     // any owner

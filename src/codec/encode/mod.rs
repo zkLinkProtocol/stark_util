@@ -1,17 +1,27 @@
 mod impl_tuples;
+mod encoder;
+mod error;
 
 use serde::{
     ser,
     ser::{SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant, SerializeTuple, SerializeTupleStruct, SerializeTupleVariant},
     Serialize,
 };
+pub use encoder::{Encode, Encoder, EncoderImpl};
+pub use error::EncodeError;
 
-use crate::{
-    encoder::{Encode, Encoder},
-    error::EncodeError,
-};
+use super::compat::Compat;
 
-pub(crate) struct SerdeEncoder<'a, ENC: Encoder> {
+impl<T> Encode for Compat<T> where T: serde::Serialize
+{
+    fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
+        let serializer = SerdeEncoder { enc: encoder };
+        self.0.serialize(serializer)?;
+        Ok(())
+    }
+}
+
+pub struct SerdeEncoder<'a, ENC: Encoder> {
     pub enc: &'a mut ENC,
 }
 

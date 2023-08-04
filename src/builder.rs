@@ -8,7 +8,7 @@ use starknet::{
     signers::{LocalWallet, SigningKey},
 };
 
-use crate::{client::StarkClient, network::Network, provider::ProviderArgs};
+use crate::provider::{Network, ProviderArgs, StarkClient};
 
 /// build contract
 #[derive(Clone, Default, Debug)]

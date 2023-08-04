@@ -1,10 +1,16 @@
+#![allow(dead_code)]
+
 use serde::Serialize;
 use starknet::{
     accounts::{Account, Call},
     core::utils::get_selector_from_name,
 };
 
-use crate::{client::StarkClient, primitive::FieldElement, proto::TxHash, to_field_elements};
+use crate::{
+    primitive::{FieldElement, TxHash},
+    provider::StarkClient,
+    to_field_elements,
+};
 
 pub struct Invoke<'a> {
     // owner

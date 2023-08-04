@@ -2,7 +2,8 @@ use async_trait::async_trait;
 // use starknet_api::contract_address;
 use anyhow::Result;
 
-use crate::{contract::Callable, from_slice, proto::*, u256::U256};
+use crate::{contract::Callable, from_slice, primitive::U256};
+use super::model::*;
 
 #[async_trait]
 pub trait ZkLinkTest {
