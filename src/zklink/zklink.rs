@@ -58,7 +58,7 @@ pub trait ZkLink {
                                       new_blocks_extra_data: Vec<CompressedBlockExtraInfo>)
                                       -> Result<TxHash>;
 
-    async fn execute_blocks(&mut self, _blocks_data: Vec<ExecuteBlockInfo>) -> Result<TxHash>;
+    async fn execute_blocks(&mut self, blocks_data: Vec<ExecuteBlockInfo>) -> Result<TxHash>;
 
     // =================Block interface=====================
     async fn prove_blocks(&mut self, committed_blocks: Vec<StoredBlockInfo>, proof: ProofInput) -> Result<TxHash>;
@@ -180,8 +180,8 @@ impl<T: Callable + Sync + Send> ZkLink for T {
         self.invoke("commitCompressedBlocks", (last_committed_block_data, new_blocks_data, new_blocks_extra_data)).await
     }
 
-    async fn execute_blocks(&mut self, _blocks_data: Vec<ExecuteBlockInfo>) -> Result<TxHash> {
-        self.invoke("executeBlocks", _blocks_data).await
+    async fn execute_blocks(&mut self, blocks_data: Vec<ExecuteBlockInfo>) -> Result<TxHash> {
+        self.invoke("executeBlocks", blocks_data).await
     }
 
     // =================Block interface=====================
