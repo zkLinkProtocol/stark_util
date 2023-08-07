@@ -41,6 +41,8 @@ pub trait ZkLink {
                             proof: Vec<U256>)
                             -> Result<TxHash>;
 
+    async fn cancel_out_standing_deposits_for_exodus_ode(&mut self, n: u64, deposits_pubdata: Vec<Bytes>) -> Result<TxHash>;
+
     async fn set_auth_pubkey_hash(&mut self, pubkey_hash: Felt252, nonce: u32) -> Result<TxHash>;
 
     async fn withdraw_pending_balance(&mut self, owner: ContractAddress, token_id: u16, amount: u128) -> Result<TxHash>;
@@ -107,6 +109,8 @@ pub trait ZkLink {
     async fn is_bridge_to_enabled(&self, bridge: ContractAddress) -> Result<bool>;
 
     async fn is_bridge_from_enabled(&self, bridge: ContractAddress) -> Result<bool>;
+
+    async fn network_governor(&self) -> Result<ContractAddress>;
 }
 
 #[async_trait]
@@ -151,6 +155,10 @@ impl<T: Callable + Sync + Send> ZkLink for T {
                             proof: Vec<U256>)
                             -> Result<TxHash> {
         self.invoke("performExodus", (stored_block_info, owner, account_id, sub_account_id, withdraw_token_id, deduct_token_id, amount, proof)).await
+    }
+
+    async fn cancel_out_standing_deposits_for_exodus_ode(&mut self, n: u64, deposits_pubdata: Vec<Bytes>) -> Result<TxHash> {
+        self.invoke("cancelOutstandingDepositsForExodusMode", (n, deposits_pubdata)).await
     }
 
     async fn set_auth_pubkey_hash(&mut self, pubkey_hash: Felt252, nonce: u32) -> Result<TxHash> {
@@ -266,6 +274,11 @@ impl<T: Callable + Sync + Send> ZkLink for T {
 
     async fn is_bridge_from_enabled(&self, bridge: ContractAddress) -> Result<bool> {
         let ret = self.call("isBridgeFromEnabled", bridge).await?;
+        Ok(from_slice(ret.as_slice())?)
+    }
+
+    async fn network_governor(&self) -> Result<ContractAddress> {
+        let ret = self.call("networkGovernor", ()).await?;
         Ok(from_slice(ret.as_slice())?)
     }
 }
