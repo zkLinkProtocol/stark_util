@@ -21,7 +21,8 @@
 
 
 pub use starknet::core::types::FieldElement;
-pub use starknet_api::core::ContractAddress;
+// pub use starknet_api::core::ContractAddress;
+pub type ContractAddress = FieldElement;
 
 /// https://github.com/lambdaclass/cairo-vm/blob/main/felt/src/lib.rs
 /// https://github.com/lambdaclass/cairo-vm/blob/main/felt/src/bigint_felt.rs

@@ -1,7 +1,6 @@
 #![allow(clippy::module_inception)]
 use anyhow::Result;
 use async_trait::async_trait;
-use starknet_api::core::ContractAddress;
 
 use crate::{contract::Callable, from_slice, primitive::*};
 use super::model::*;
