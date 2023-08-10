@@ -29,9 +29,23 @@ impl From<Network> for FieldElement {
     }
 }
 
+impl From<FieldElement> for Network {
+    fn from(id: FieldElement) -> Network {
+        if id == chain_id::MAINNET {
+            Network::Mainnet
+        } else if id == chain_id::TESTNET {
+            Network::Goerli1
+        } else if id == chain_id::TESTNET2 {
+            Network::Goerli2
+        } else {
+            Network::Integration
+        }
+    }
+}
+
 #[async_trait]
 pub trait NetworkSource {
-    async fn get_network(&self) -> Result<Option<Network>>;
+    async fn get_network(&self) -> Result<Network>;
 }
 
 impl FromStr for Network {
@@ -61,20 +75,9 @@ impl Display for Network {
 
 #[async_trait]
 impl NetworkSource for ExtendedProvider {
-    async fn get_network(&self) -> Result<Option<Network>> {
+    async fn get_network(&self) -> Result<Network> {
         let chain_id = self.chain_id().await?;
         let is_integration = self.is_integration();
-
-        Ok(if is_integration {
-            if chain_id == chain_id::TESTNET { Some(Network::Integration) } else { None }
-        } else if chain_id == chain_id::MAINNET {
-            Some(Network::Mainnet)
-        } else if chain_id == chain_id::TESTNET {
-            Some(Network::Goerli1)
-        } else if chain_id == chain_id::TESTNET2 {
-            Some(Network::Goerli2)
-        } else {
-            None
-        })
+        Ok(if is_integration && chain_id == chain_id::TESTNET { Network::Integration } else { Network::from(chain_id) })
     }
 }

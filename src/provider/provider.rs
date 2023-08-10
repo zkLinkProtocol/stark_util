@@ -15,6 +15,21 @@ pub enum ProviderArgs {
     Gateway(Option<(Url, Url)>, Network),
 }
 
+impl ProviderArgs {
+    pub fn new(url: &str, network: Network, is_rpc: bool) -> Self {
+        let url = url.parse().expect("Url error");
+        if is_rpc {
+            ProviderArgs::Rpc(url)
+        } else {
+            let mut web_url = None;
+            if let (Ok(gateway), Ok(feeder_gateway)) = (url.join("gateway"), url.join("feeder_gateway")) {
+                web_url = Some((gateway, feeder_gateway));
+            }
+            ProviderArgs::Gateway(web_url, network)
+        }
+    }
+}
+
 impl Default for ProviderArgs {
     fn default() -> Self {
         ProviderArgs::Gateway(None, Network::Goerli1)
