@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 thiserror = "1.0"
-starknet = { git = "https://github.com/xJonathanLEI/starknet-rs.git", branch = "master" }
+starknet = { git = "https://github.com/xJonathanLEI/starknet-rs.git",rev = "3f319338" }
 serde = "1.0"
 hex = "0.4"
 primitive-types = "0.12"
