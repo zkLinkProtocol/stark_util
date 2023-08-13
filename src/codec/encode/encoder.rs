@@ -1,8 +1,11 @@
-use crate::error::EncodeError;
+use std::str::FromStr;
+
 use starknet::core::types::FieldElement;
 
+use super::EncodeError;
+
 pub struct EncoderImpl {
-    pub filed_elements: Vec<FieldElement>,
+    pub field_elements: Vec<FieldElement>,
 }
 
 pub trait Encode {
@@ -18,15 +21,12 @@ pub trait Encoder {
 impl Encoder for EncoderImpl {
     #[inline]
     fn push_field_element(&mut self, element: FieldElement) {
-        self.filed_elements.push(element);
+        self.field_elements.push(element);
     }
 }
 
 #[inline]
-pub(crate) fn encode_option_variant<E: Encoder, T>(
-    encoder: &mut E,
-    value: &Option<T>,
-) -> Result<(), EncodeError> {
+pub fn encode_option_variant<E: Encoder, T>(encoder: &mut E, value: &Option<T>) -> Result<(), EncodeError> {
     match value {
         None => 0u8.encode(encoder),
         Some(_) => 1u8.encode(encoder),
@@ -51,7 +51,7 @@ impl Encode for bool {
 }
 
 macro_rules! impl_encode_for_num {
-    ($ty: ty) => {
+    ($ty:ty) => {
         impl Encode for $ty {
             fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
                 let f = FieldElement::from(*self);
@@ -86,9 +86,7 @@ impl Encode for f32 {}
 impl Encode for f64 {}
 impl Encode for char {}
 
-impl<T> Encode for [T]
-where
-    T: Encode + 'static,
+impl<T> Encode for [T] where T: Encode + 'static
 {
     fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
         encode_slice_len(encoder, self.len())?;
@@ -102,8 +100,14 @@ where
 /// only encode hash, which starts with "0x" or not
 impl Encode for str {
     fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
-        let s = self.strip_prefix("0x").unwrap_or(self);
-        let field = FieldElement::from_hex_be(s).map_err(|_| EncodeError::InvalidString)?;
+        let field = FieldElement::from_str(self).map_err(|_| EncodeError::InvalidString)?;
+        field.encode(encoder)
+    }
+}
+
+impl Encode for String {
+    fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
+        let field = FieldElement::from_str(self.as_str()).map_err(|_| EncodeError::InvalidString)?;
         field.encode(encoder)
     }
 }
@@ -115,9 +119,7 @@ impl Encode for FieldElement {
     }
 }
 
-impl<T, const N: usize> Encode for [T; N]
-where
-    T: Encode,
+impl<T, const N: usize> Encode for [T; N] where T: Encode
 {
     fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
         for item in self.iter() {
@@ -127,9 +129,7 @@ where
     }
 }
 
-impl<T> Encode for Option<T>
-where
-    T: Encode,
+impl<T> Encode for Option<T> where T: Encode
 {
     fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
         encode_option_variant(encoder, self)?;
@@ -141,9 +141,8 @@ where
 }
 
 impl<T, U> Encode for Result<T, U>
-where
-    T: Encode,
-    U: Encode,
+    where T: Encode,
+          U: Encode
 {
     fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
         match self {
@@ -159,9 +158,7 @@ where
     }
 }
 
-impl<'a, T> Encode for &'a T
-where
-    T: Encode + ?Sized,
+impl<'a, T> Encode for &'a T where T: Encode + ?Sized
 {
     fn encode<E: Encoder>(&self, encoder: &mut E) -> Result<(), EncodeError> {
         T::encode(self, encoder)

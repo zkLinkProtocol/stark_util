@@ -1,0 +1,11 @@
+version = "Two"
+max_width = 120
+use_small_heuristics="Max"
+indent_style="Visual"
+group_imports="StdExternalCrate"
+imports_granularity="Crate"
+edition = "2021"
+#reorder_imports = false
+#reorder_modules = false
+condense_wildcard_suffixes=true
+format_macro_matchers=true
