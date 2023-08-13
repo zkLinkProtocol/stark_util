@@ -1,15 +1,15 @@
-mod compat;
-mod encode;
-mod decode;
+pub mod decode;
+pub mod encode;
 
-use serde::Serialize;
-use encode::{EncodeError, EncoderImpl, SerdeEncoder};
 use decode::{DecodeError, DecoderImpl, SerdeDecoder, SliceReader};
+use encode::{EncodeError, EncoderImpl, SerdeEncoder};
+use serde::Serialize;
 
 use crate::primitive::FieldElement;
 
 pub fn to_field_elements<T>(t: T) -> Result<Vec<FieldElement>, EncodeError>
-    where T: Serialize {
+    where T: Serialize
+{
     let mut encoder = EncoderImpl { field_elements: vec![] };
     let serializer = SerdeEncoder { enc: &mut encoder };
     t.serialize(serializer)?;
@@ -19,7 +19,8 @@ pub fn to_field_elements<T>(t: T) -> Result<Vec<FieldElement>, EncodeError>
 /// Attempt to decode a given type `D` from the given slice. Returns the decoded
 /// output.
 pub fn from_slice<T>(slice: &[FieldElement]) -> Result<T, DecodeError>
-    where T: serde::de::DeserializeOwned {
+    where T: serde::de::DeserializeOwned
+{
     let reader = SliceReader::new(slice);
     let mut decoder = DecoderImpl::new(reader);
     let serde_decoder = SerdeDecoder { de: &mut decoder };

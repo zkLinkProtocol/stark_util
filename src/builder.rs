@@ -1,27 +1,23 @@
 use std::str::FromStr;
 
-use url::Url;
 use anyhow::Result;
 use starknet::{
-    accounts::SingleOwnerAccount,
+    accounts::{ConnectedAccount, SingleOwnerAccount},
     core::types::FieldElement,
     signers::{LocalWallet, SigningKey},
 };
 
-use crate::{
-    provider::{Network, ProviderArgs, StarkClient},
-    Contract,
-};
+use crate::{provider::provider::ProviderArgs, ContractInstance};
 
 /// build contract
 #[derive(Clone, Default, Debug)]
 pub struct Builder {
-    url: Option<Url>,
+    url: &'static str,
     is_rpc: bool,
     private_key: FieldElement,
     owner_address: FieldElement,
     contract_address: FieldElement,
-    network: Network,
+    network: FieldElement,
 }
 
 impl Builder {
@@ -29,9 +25,8 @@ impl Builder {
         Builder::default()
     }
 
-    pub fn set_url(mut self, url: &str, is_rpc: bool) -> Result<Self> {
-        let url = url.parse()?;
-        self.url = Some(url);
+    pub fn set_url(mut self, url: &'static str, is_rpc: bool) -> Result<Self> {
+        self.url = url;
         self.is_rpc = is_rpc;
         Ok(self)
     }
@@ -51,26 +46,16 @@ impl Builder {
         Ok(self)
     }
 
-    pub fn set_network(mut self, network: Network) -> Result<Self> {
+    pub fn set_network(mut self, network: FieldElement) -> Result<Self> {
         self.network = network;
         Ok(self)
     }
 
-    pub fn build(self) -> Result<Contract> {
-        let provider = if self.is_rpc {
-            let url = self.url.expect("url error");
-            ProviderArgs::Rpc(url).into()
-        } else {
-            let web_url = match self.url {
-                Some(url) => Some((url.join("gateway")?, url.join("feeder_gateway")?)),
-                _ => None,
-            };
-            ProviderArgs::Gateway(web_url, self.network).into()
-        };
-
+    pub fn build(self) -> Result<ContractInstance<impl ConnectedAccount>> {
+        let provider = ProviderArgs::new(self.url, self.network, self.is_rpc).provider();
         let wallet = LocalWallet::from(SigningKey::from_secret_scalar(self.private_key));
-        let owner = SingleOwnerAccount::new(provider, wallet, self.owner_address, self.network.into());
+        let owner = SingleOwnerAccount::new(provider, wallet, self.owner_address, self.network);
 
-        Ok(Contract::new(StarkClient::new(owner), self.contract_address))
+        Ok(ContractInstance::new(owner, self.contract_address))
     }
 }

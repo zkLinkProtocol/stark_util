@@ -2,8 +2,11 @@
 use anyhow::Result;
 use async_trait::async_trait;
 
-use crate::{contract::Callable, from_slice, primitive::*};
 use super::model::*;
+use crate::{
+    contract::{ContractCaller, ContractInvoker},
+    primitive::*,
+};
 
 #[async_trait]
 pub trait ZkLink {
@@ -24,7 +27,12 @@ pub trait ZkLink {
                             is_standard: bool)
                             -> Result<TxHash>;
 
-    async fn request_full_exit(&mut self, account_id: u32, sub_account_id: u8, token_id: u16, mapping: bool) -> Result<TxHash>;
+    async fn request_full_exit(&mut self,
+                               account_id: u32,
+                               sub_account_id: u8,
+                               token_id: u16,
+                               mapping: bool)
+                               -> Result<TxHash>;
 
     async fn activate_exodus_mode(&mut self) -> Result<TxHash>;
 
@@ -40,16 +48,23 @@ pub trait ZkLink {
                             proof: Vec<U256>)
                             -> Result<TxHash>;
 
-    async fn cancel_out_standing_deposits_for_exodus_ode(&mut self, n: u64, deposits_pubdata: Vec<Bytes>) -> Result<TxHash>;
+    async fn cancel_out_standing_deposits_for_exodus_ode(&mut self,
+                                                         n: u64,
+                                                         deposits_pubdata: Vec<Bytes>)
+                                                         -> Result<TxHash>;
 
     async fn set_auth_pubkey_hash(&mut self, pubkey_hash: Felt252, nonce: u32) -> Result<TxHash>;
 
-    async fn withdraw_pending_balance(&mut self, owner: ContractAddress, token_id: u16, amount: u128) -> Result<TxHash>;
+    async fn withdraw_pending_balance(&mut self, owner: ContractAddress, token_id: u16, amount: u128)
+                                      -> Result<TxHash>;
 
     async fn get_pending_balance(&self, address: ContractAddress, token_id: u16) -> Result<u128>;
 
     // =================Validator interface=================
-    async fn commit_blocks(&mut self, last_committed_block_data: StoredBlockInfo, new_blocks_data: Vec<CommitBlockInfo>) -> Result<TxHash>;
+    async fn commit_blocks(&mut self,
+                           last_committed_block_data: StoredBlockInfo,
+                           new_blocks_data: Vec<CommitBlockInfo>)
+                           -> Result<TxHash>;
 
     /// Blocks commitment verification.
     /// Only verifies block commitments without any other processing
@@ -86,14 +101,20 @@ pub trait ZkLink {
                           amount_transfer: u128)
                           -> Result<TxHash>;
 
-    async fn broker_allowance(&self, token_id: u16, accepter: ContractAddress, broker: ContractAddress) -> Result<u128>;
+    async fn broker_allowance(&self, token_id: u16, accepter: ContractAddress, broker: ContractAddress)
+                              -> Result<u128>;
 
     async fn broker_approve(&mut self, token_id: u16, broker: ContractAddress, amount: u128) -> Result<TxHash>;
 
     // =================Governance interface===============
     async fn change_governor(&mut self, new_governor: ContractAddress) -> Result<TxHash>;
 
-    async fn add_token(&mut self, token_id: u16, token_address: ContractAddress, decimals: u8, standard: bool) -> Result<TxHash>;
+    async fn add_token(&mut self,
+                       token_id: u16,
+                       token_address: ContractAddress,
+                       decimals: u8,
+                       standard: bool)
+                       -> Result<TxHash>;
 
     async fn add_tokens(&mut self, token_list: Vec<Token>) -> Result<TxHash>;
 
@@ -103,7 +124,8 @@ pub trait ZkLink {
 
     async fn add_bridge(&mut self, bridge: ContractAddress) -> Result<TxHash>;
 
-    async fn update_bridge(&mut self, index: usize, enable_bridge_to: bool, enable_bridge_from: bool) -> Result<TxHash>;
+    async fn update_bridge(&mut self, index: usize, enable_bridge_to: bool, enable_bridge_from: bool)
+                           -> Result<TxHash>;
 
     async fn is_bridge_to_enabled(&self, bridge: ContractAddress) -> Result<bool>;
 
@@ -113,7 +135,10 @@ pub trait ZkLink {
 }
 
 #[async_trait]
-impl<T: Callable + Sync + Send> ZkLink for T {
+impl<T> ZkLink for T
+    where T: ContractCaller + ContractInvoker + Sync + Send,
+          <<T as ContractCaller>::Provider as starknet::providers::Provider>::Error: 'static
+{
     async fn deposit_erc20(&mut self,
                            token: ContractAddress,
                            amount: u128,
@@ -134,7 +159,12 @@ impl<T: Callable + Sync + Send> ZkLink for T {
         self.invoke("transferERC20", (token, to, amount, max_amount, is_standard)).await
     }
 
-    async fn request_full_exit(&mut self, account_id: u32, sub_account_id: u8, token_id: u16, mapping: bool) -> Result<TxHash> {
+    async fn request_full_exit(&mut self,
+                               account_id: u32,
+                               sub_account_id: u8,
+                               token_id: u16,
+                               mapping: bool)
+                               -> Result<TxHash> {
         self.invoke("requestFullExit", (account_id, sub_account_id, token_id, mapping)).await
     }
 
@@ -156,7 +186,10 @@ impl<T: Callable + Sync + Send> ZkLink for T {
         self.invoke("performExodus", (stored_block_info, owner, account_id, sub_account_id, withdraw_token_id, deduct_token_id, amount, proof)).await
     }
 
-    async fn cancel_out_standing_deposits_for_exodus_ode(&mut self, n: u64, deposits_pubdata: Vec<Bytes>) -> Result<TxHash> {
+    async fn cancel_out_standing_deposits_for_exodus_ode(&mut self,
+                                                         n: u64,
+                                                         deposits_pubdata: Vec<Bytes>)
+                                                         -> Result<TxHash> {
         self.invoke("cancelOutstandingDepositsForExodusMode", (n, deposits_pubdata)).await
     }
 
@@ -164,17 +197,23 @@ impl<T: Callable + Sync + Send> ZkLink for T {
         self.invoke("setAuthPubkeyHash", (pubkey_hash, nonce)).await
     }
 
-    async fn withdraw_pending_balance(&mut self, owner: ContractAddress, token_id: u16, amount: u128) -> Result<TxHash> {
+    async fn withdraw_pending_balance(&mut self,
+                                      owner: ContractAddress,
+                                      token_id: u16,
+                                      amount: u128)
+                                      -> Result<TxHash> {
         self.invoke("withdrawPendingBalance", (owner, token_id, amount)).await
     }
 
     async fn get_pending_balance(&self, address: ContractAddress, token_id: u16) -> Result<u128> {
-        let ret = self.call("getPendingBalance", (address, token_id)).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("getPendingBalance", (address, token_id)).await
     }
 
     // =================Validator interface=================
-    async fn commit_blocks(&mut self, last_committed_block_data: StoredBlockInfo, new_blocks_data: Vec<CommitBlockInfo>) -> Result<TxHash> {
+    async fn commit_blocks(&mut self,
+                           last_committed_block_data: StoredBlockInfo,
+                           new_blocks_data: Vec<CommitBlockInfo>)
+                           -> Result<TxHash> {
         self.invoke("commitBlocks", (last_committed_block_data, new_blocks_data)).await
     }
     /// Blocks commitment verification.
@@ -206,8 +245,7 @@ impl<T: Callable + Sync + Send> ZkLink for T {
     }
 
     async fn get_synchronized_progress(&self, block: StoredBlockInfo) -> Result<U256> {
-        let ret = self.call("getSynchronizedProgress", block).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("getSynchronizedProgress", block).await
     }
 
     async fn sync_blocks(&mut self, block: StoredBlockInfo) -> Result<TxHash> {
@@ -225,12 +263,17 @@ impl<T: Callable + Sync + Send> ZkLink for T {
                           nonce: u32,
                           amount_transfer: u128)
                           -> Result<TxHash> {
-        self.invoke("acceptERC20", (accepter, account_id, receiver, token_id, amount, withdraw_fee_rate, nonce, amount_transfer)).await
+        self.invoke("acceptERC20",
+                    (accepter, account_id, receiver, token_id, amount, withdraw_fee_rate, nonce, amount_transfer))
+            .await
     }
 
-    async fn broker_allowance(&self, token_id: u16, accepter: ContractAddress, broker: ContractAddress) -> Result<u128> {
-        let ret = self.call("brokerAllowance", (token_id, accepter, broker)).await?;
-        Ok(from_slice(ret.as_slice())?)
+    async fn broker_allowance(&self,
+                              token_id: u16,
+                              accepter: ContractAddress,
+                              broker: ContractAddress)
+                              -> Result<u128> {
+        self.call("brokerAllowance", (token_id, accepter, broker)).await
     }
 
     async fn broker_approve(&mut self, token_id: u16, broker: ContractAddress, amount: u128) -> Result<TxHash> {
@@ -242,7 +285,12 @@ impl<T: Callable + Sync + Send> ZkLink for T {
         self.invoke("changeGovernor", new_governor).await
     }
 
-    async fn add_token(&mut self, token_id: u16, token_address: ContractAddress, decimals: u8, standard: bool) -> Result<TxHash> {
+    async fn add_token(&mut self,
+                       token_id: u16,
+                       token_address: ContractAddress,
+                       decimals: u8,
+                       standard: bool)
+                       -> Result<TxHash> {
         self.invoke("addToken", (token_id, token_address, decimals, standard)).await
     }
 
@@ -262,22 +310,23 @@ impl<T: Callable + Sync + Send> ZkLink for T {
         self.invoke("addBridge", bridge).await
     }
 
-    async fn update_bridge(&mut self, index: usize, enable_bridge_to: bool, enable_bridge_from: bool) -> Result<TxHash> {
+    async fn update_bridge(&mut self,
+                           index: usize,
+                           enable_bridge_to: bool,
+                           enable_bridge_from: bool)
+                           -> Result<TxHash> {
         self.invoke("updateBridge", (index, enable_bridge_to, enable_bridge_from)).await
     }
 
     async fn is_bridge_to_enabled(&self, bridge: ContractAddress) -> Result<bool> {
-        let ret = self.call("isBridgeToEnabled", bridge).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("isBridgeToEnabled", bridge).await
     }
 
     async fn is_bridge_from_enabled(&self, bridge: ContractAddress) -> Result<bool> {
-        let ret = self.call("isBridgeFromEnabled", bridge).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("isBridgeFromEnabled", bridge).await
     }
 
     async fn network_governor(&self) -> Result<ContractAddress> {
-        let ret = self.call("networkGovernor", ()).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("networkGovernor", ()).await
     }
 }

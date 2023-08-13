@@ -61,7 +61,12 @@ impl<A, B, C, D, E, F> Decode for (A, B, C, D, E, F)
           F: Decode
 {
     fn decode<DE: Decoder>(decoder: &mut DE) -> Result<Self, DecodeError> {
-        Ok((A::decode(decoder)?, B::decode(decoder)?, C::decode(decoder)?, D::decode(decoder)?, E::decode(decoder)?, F::decode(decoder)?))
+        Ok((A::decode(decoder)?,
+            B::decode(decoder)?,
+            C::decode(decoder)?,
+            D::decode(decoder)?,
+            E::decode(decoder)?,
+            F::decode(decoder)?))
     }
 }
 

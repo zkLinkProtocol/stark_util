@@ -6,11 +6,11 @@ use anyhow::Result;
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use stark_util::{
-    contract::Callable,
-    from_slice,
+    contract::{ContractCaller, ContractInvoker},
     primitive::{FieldElement, TxHash},
-    Builder, Contract,
+    Builder, ContractInstance,
 };
+use starknet::accounts::ConnectedAccount;
 
 const PRIVATE_KEY: &str = "0x029d821d79d49716c0760c79a3258f25c84875476cd7db2afce1856162715976";
 
@@ -22,9 +22,12 @@ const ACCOUNT2: &str = "0x06ac7d3ef3458c6372e9f0dbb32c8bd023f0d5f7a98c650b105a5c
 const ACCOUNT3: &str = "0x065f81fa8f222be104e463afc51bc97ea0d93d21e0bbfbfdca18c713c84a544f";
 const COUNTER_CONTRACT_ADDRESS: &str = "0x0311bb7385271f9fa3754218f4bf097a784c308da898df405b84d571f5ed7468";
 
-fn contract() -> Result<Contract> {
+fn contract() -> Result<ContractInstance<impl ConnectedAccount>> {
     let builder = Builder::new();
-    builder.set_private_key(PRIVATE_KEY)?.set_owner_address(ACCOUNT)?.set_contract_address(COUNTER_CONTRACT_ADDRESS)?.build()
+    builder.set_private_key(PRIVATE_KEY)?
+           .set_owner_address(ACCOUNT)?
+           .set_contract_address(COUNTER_CONTRACT_ADDRESS)?
+           .build()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -45,7 +48,10 @@ trait Counter {
 }
 
 #[async_trait]
-impl<T: Callable + Sync> Counter for T {
+impl<T> Counter for T
+    where T: ContractCaller + ContractInvoker + Sync,
+          <<T as ContractCaller>::Provider as starknet::providers::Provider>::Error: 'static
+{
     async fn incr(&self) -> Result<TxHash> {
         self.invoke("incr", ()).await
     }
@@ -59,18 +65,15 @@ impl<T: Callable + Sync> Counter for T {
     }
 
     async fn get_counter(&self) -> Result<u64> {
-        let ret = self.call("get_counter", ()).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("get_counter", ()).await
     }
 
     async fn is_registered(&self, user_address: FieldElement) -> Result<bool> {
-        let ret = self.call("is_registered", user_address).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("is_registered", user_address).await
     }
 
     async fn get_counter_status(&self) -> Result<ContractInfo> {
-        let ret = self.call("get_counter_status", ()).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("get_counter_status", ()).await
     }
 }
 

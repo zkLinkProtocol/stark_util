@@ -5,11 +5,11 @@ use std::str::FromStr;
 use anyhow::Result;
 use async_trait::async_trait;
 use stark_util::{
-    contract::Callable,
-    from_slice,
+    contract::{ContractCaller, ContractInvoker},
     primitive::{FieldElement, TxHash},
-    Builder, Contract,
+    Builder, ContractInstance,
 };
+use starknet::accounts::ConnectedAccount;
 
 const PRIVATE_KEY: &str = "0x029d821d79d49716c0760c79a3258f25c84875476cd7db2afce1856162715976";
 const PUBLIC_KEY: &str = "0x2abb6a1b2cd549fdf87835d1c04a8c156ac4d42441b5b7fcb1386768558a7be";
@@ -20,9 +20,12 @@ const ACCOUNT2: &str = "0x06ac7d3ef3458c6372e9f0dbb32c8bd023f0d5f7a98c650b105a5c
 const ACCOUNT3: &str = "0x065f81fa8f222be104e463afc51bc97ea0d93d21e0bbfbfdca18c713c84a544f";
 const VOTE_CONTRACT_ADDRESS: &str = "0x03f99846b75acbe56129d5137403697774e681a35b9bf6f19cd59cb2fa62299c";
 
-fn contract() -> Result<Contract> {
+fn contract() -> Result<ContractInstance<impl ConnectedAccount>> {
     let builder = Builder::new();
-    builder.set_private_key(PRIVATE_KEY)?.set_owner_address(ACCOUNT)?.set_contract_address(VOTE_CONTRACT_ADDRESS)?.build()
+    builder.set_private_key(PRIVATE_KEY)?
+           .set_owner_address(ACCOUNT)?
+           .set_contract_address(VOTE_CONTRACT_ADDRESS)?
+           .build()
 }
 
 #[async_trait]
@@ -34,20 +37,20 @@ trait Vote {
 }
 
 #[async_trait]
-impl<T: Callable + Sync> Vote for T {
+impl<T> Vote for T
+    where T: ContractCaller + ContractInvoker + Sync,
+          <<T as ContractCaller>::Provider as starknet::providers::Provider>::Error: 'static
+{
     async fn get_vote_status(&self) -> Result<(u8, u8, u8, u8)> {
-        let ret = self.call("get_vote_status", ()).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("get_vote_status", ()).await
     }
 
     async fn voter_can_vote(&self, user_address: FieldElement) -> Result<bool> {
-        let ret = self.call("voter_can_vote", user_address).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("voter_can_vote", user_address).await
     }
 
     async fn is_voter_registered(&self, user_address: FieldElement) -> Result<bool> {
-        let ret = self.call("is_voter_registered", user_address).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("is_voter_registered", user_address).await
     }
 
     async fn vote(&self, vote: bool) -> Result<TxHash> {

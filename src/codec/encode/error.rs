@@ -18,7 +18,8 @@ pub enum EncodeError {
 
 impl serde::ser::Error for EncodeError {
     fn custom<T>(msg: T) -> Self
-        where T: Display {
+        where T: Display
+    {
         Self::OtherString(msg.to_string())
     }
 }

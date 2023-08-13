@@ -1,8 +1,8 @@
-use async_trait::async_trait;
 use anyhow::Result;
+use async_trait::async_trait;
 
-use crate::{contract::Callable, from_slice, primitive::U256};
 use super::model::*;
+use crate::{contract::ContractCaller, primitive::U256};
 
 #[async_trait]
 pub trait ZkLinkTest {
@@ -12,9 +12,18 @@ pub trait ZkLinkTest {
 
     async fn commit_block_info_test(&self, blocks_data: Vec<CommitBlockInfo>, i: usize, j: usize) -> Result<usize>;
 
-    async fn compressed_block_extra_info_test(&self, blocks_extra_data: Vec<CompressedBlockExtraInfo>, i: usize, j: usize) -> Result<U256>;
+    async fn compressed_block_extra_info_test(&self,
+                                              blocks_extra_data: Vec<CompressedBlockExtraInfo>,
+                                              i: usize,
+                                              j: usize)
+                                              -> Result<U256>;
 
-    async fn execute_block_info_test(&self, blocks_data: Vec<ExecuteBlockInfo>, i: usize, j: usize, op_type: u8) -> Result<u8>;
+    async fn execute_block_info_test(&self,
+                                     blocks_data: Vec<ExecuteBlockInfo>,
+                                     i: usize,
+                                     j: usize,
+                                     op_type: u8)
+                                     -> Result<u8>;
 
     async fn u256test(&self, u256: U256) -> Result<(u128, u128)>;
 
@@ -26,72 +35,76 @@ pub trait ZkLinkTest {
 }
 
 #[async_trait]
-impl<T: Callable + Sync> ZkLinkTest for T {
+impl<T> ZkLinkTest for T
+    where T: ContractCaller + Sync,
+          <<T as ContractCaller>::Provider as starknet::providers::Provider>::Error: 'static
+{
     async fn stored_block_info_test(&self, blocks_data: Vec<StoredBlockInfo>, i: usize) -> Result<u64> {
-        let ret = self.call("StoredBlockInfoTest", (blocks_data, i)).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("StoredBlockInfoTest", (blocks_data, i)).await
     }
 
     async fn commit_block_info_test(&self, blocks_data: Vec<CommitBlockInfo>, i: usize, j: usize) -> Result<usize> {
-        let ret = self.call("CommitBlockInfoTest", (blocks_data, i, j)).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("CommitBlockInfoTest", (blocks_data, i, j)).await
     }
 
-    async fn compressed_block_extra_info_test(&self, blocks_extra_data: Vec<CompressedBlockExtraInfo>, i: usize, j: usize) -> Result<U256> {
-        let ret = self.call("CompressedBlockExtraInfoTest", (blocks_extra_data, i, j)).await?;
-        Ok(from_slice(ret.as_slice())?)
+    async fn compressed_block_extra_info_test(&self,
+                                              blocks_extra_data: Vec<CompressedBlockExtraInfo>,
+                                              i: usize,
+                                              j: usize)
+                                              -> Result<U256> {
+        self.call("CompressedBlockExtraInfoTest", (blocks_extra_data, i, j)).await
     }
 
-    async fn execute_block_info_test(&self, blocks_data: Vec<ExecuteBlockInfo>, i: usize, j: usize, op_type: u8) -> Result<u8> {
-        let ret = self.call("ExecuteBlockInfoTest", (blocks_data, i, j, op_type)).await?;
-        Ok(from_slice(ret.as_slice())?)
+    async fn execute_block_info_test(&self,
+                                     blocks_data: Vec<ExecuteBlockInfo>,
+                                     i: usize,
+                                     j: usize,
+                                     op_type: u8)
+                                     -> Result<u8> {
+        self.call("ExecuteBlockInfoTest", (blocks_data, i, j, op_type)).await
     }
 
     async fn u256test(&self, u256: U256) -> Result<(u128, u128)> {
-        let ret = self.call("u256Test", u256).await?;
-        Ok(from_slice::<(u128, u128)>(ret.as_slice())?)
+        self.call("u256Test", u256).await
     }
 
     async fn u256s_test(&self, u256s: Vec<U256>, i: usize) -> Result<(u128, u128)> {
-        let ret = self.call("u256sTest", (u256s, i)).await?;
-        Ok(from_slice::<(u128, u128)>(ret.as_slice())?)
+        self.call("u256sTest", (u256s, i)).await
     }
 
     async fn u8s_test1(&self, u8s: Vec<u8>) -> Result<usize> {
-        let ret = self.call("u8sTest1", u8s).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("u8sTest1", u8s).await
     }
 
     async fn u8s_test2(&self, u8s: Vec<u8>) -> Result<Vec<u8>> {
-        let ret = self.call("u8sTest2", u8s).await?;
-        Ok(from_slice(ret.as_slice())?)
+        self.call("u8sTest2", u8s).await
     }
 }
 
 #[cfg(test)]
 mod test {
+    use starknet::accounts::ConnectedAccount;
+
     #[allow(unused_imports)]
     use crate::{
         builder::Builder,
-        contract::Contract,
+        contract::ContractInstance,
         primitive::*,
         provider::*,
-        zklink::{
-            model::{Bytes, CommitBlockInfo, CompressedBlockExtraInfo, ExecuteBlockInfo, OnchainOperationData, StoredBlockInfo},
-            ZkLinkTest,
+        zklink::model::{
+            Bytes, CommitBlockInfo, CompressedBlockExtraInfo, ExecuteBlockInfo, OnchainOperationData, StoredBlockInfo,
         },
+        zklink::zklink_test::ZkLinkTest,
     };
 
-    fn contract() -> Contract {
+    fn contract() -> ContractInstance<impl ConnectedAccount> {
         #[allow(unused_variables)]
         let contract_clash_hash = "0x750c5cb7ba676049a2f8b7caabaf1d9dd4adbe7aa716735edde5aaa2e3d02b4";
         let private_key_hex = "0x029d821d79d49716c0760c79a3258f25c84875476cd7db2afce1856162715976";
         let account_address = "0x5686c52b6f38639eb9cfb3dfff1b3260315099aa045fcc0b4a865068ba36aad";
         let contract_address = "0xe402c3433801b22d90e257b1ebcdee7532b99d03fe14559d7db87185d7f794";
-        let network = Network::Goerli1;
         let builder = || {
-            Builder::new().set_network(network)?
-                          .set_contract_address(contract_address)?
+            Builder::new().set_contract_address(contract_address)?
                           .set_owner_address(account_address)?
                           .set_private_key(private_key_hex)?
                           .build()
@@ -178,4 +191,3 @@ mod test {
         // assert!(r.is_ok());
     }
 }
-

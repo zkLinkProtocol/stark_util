@@ -38,7 +38,8 @@ pub enum DecodeError {
 
 impl serde::de::Error for DecodeError {
     fn custom<T>(msg: T) -> Self
-        where T: Display {
+        where T: Display
+    {
         Self::Other(msg.to_string())
     }
 }
