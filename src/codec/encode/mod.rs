@@ -1,5 +1,5 @@
-mod encoder;
-mod error;
+pub mod encoder;
+pub mod error;
 mod impl_tuples;
 
 pub use encoder::{Encode, Encoder, EncoderImpl};

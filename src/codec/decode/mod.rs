@@ -1,8 +1,8 @@
-mod de_owned;
-mod decoder;
-mod error;
+pub mod de_owned;
+pub mod decoder;
+pub mod error;
 mod impl_tuples;
-mod reader;
+pub mod reader;
 
 pub use de_owned::SerdeDecoder;
 pub use decoder::{Decode, Decoder, DecoderImpl};

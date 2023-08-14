@@ -1,8 +1,9 @@
 use std::fmt::Display;
 
-use thiserror::Error;
+use starknet::core::types::{FromByteArrayError, FromByteSliceError};
 
-#[derive(Error, Debug, Clone)]
+#[derive(thiserror::Error, Debug)]
+#[error(transparent)]
 pub enum EncodeError {
     #[error("squence mast have length")]
     SequenceMustHaveLength,
@@ -14,6 +15,10 @@ pub enum EncodeError {
     OtherString(String),
     #[error("only support Hex string")]
     InvalidString,
+    #[error("encode U256 error: {0:?}")]
+    FromByteArrayError(FromByteArrayError),
+    #[error("encode H256 or ZkLinkAddress error: {0:?}")]
+    FromByteSliceError(FromByteSliceError),
 }
 
 impl serde::ser::Error for EncodeError {
@@ -21,5 +26,17 @@ impl serde::ser::Error for EncodeError {
         where T: Display
     {
         Self::OtherString(msg.to_string())
+    }
+}
+
+impl From<FromByteArrayError> for EncodeError {
+    fn from(value: FromByteArrayError) -> Self {
+        EncodeError::FromByteArrayError(value)
+    }
+}
+
+impl From<FromByteSliceError> for EncodeError {
+    fn from(value: FromByteSliceError) -> Self {
+        EncodeError::FromByteSliceError(value)
     }
 }

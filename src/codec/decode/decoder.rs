@@ -11,7 +11,26 @@ pub fn u128_from_field_element(field_element: FieldElement) -> u128 {
 
 pub trait Decode: Sized {
     /// Attempt to decode this type with the given [Decode].
-    fn decode<D: Decoder>(_decoder: &mut D) -> Result<Self, DecodeError>;
+    fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
+        Self::decode_one(decoder)
+    }
+
+    fn decode_one<D>(decoder: &mut D) -> Result<Self, DecodeError>
+        where D: Decoder
+    {
+        decoder.claim_field_elements_read(1)?;
+        if let Some(buf) = decoder.reader().peek_read(1) {
+            let element = buf[0];
+            decoder.reader().consume(1);
+            Self::decode_element(element)
+        } else {
+            Err(DecodeError::UnexpectedEnd { additional: 1 })
+        }
+    }
+
+    fn decode_element(_element: FieldElement) -> Result<Self, DecodeError> {
+        unimplemented!("Type unimplemented")
+    }
 }
 
 pub trait Decoder {
@@ -67,21 +86,14 @@ impl<R> Decoder for DecoderImpl<R> where R: Reader
 }
 
 impl Decode for FieldElement {
-    fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
-        decoder.claim_field_elements_read(1)?;
-        if let Some(buf) = decoder.reader().peek_read(1) {
-            let element = buf[0];
-            decoder.reader().consume(1);
-            Ok(element)
-        } else {
-            Err(DecodeError::UnexpectedEnd { additional: 1 })
-        }
+    fn decode_element(element: FieldElement) -> Result<Self, DecodeError> {
+        Ok(element)
     }
 }
 
 impl Decode for bool {
-    fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
-        match u8::decode(decoder)? {
+    fn decode_element(element: FieldElement) -> Result<Self, DecodeError> {
+        match u8::decode_element(element)? {
             0 => Ok(false),
             1 => Ok(true),
             _ => Err(DecodeError::OutOfRange),
@@ -93,16 +105,9 @@ macro_rules! impl_decode_for_unsigned_num {
     ($ty:ty) => {
         impl Decode for $ty {
             #[inline]
-            fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
-                decoder.claim_field_elements_read(1)?;
-                if let Some(buf) = decoder.reader().peek_read(1) {
-                    let element = buf[0];
-                    decoder.reader().consume(1);
-                    let num: $ty = element.try_into().map_err(|_e| DecodeError::OutOfRange)?;
-                    Ok(num)
-                } else {
-                    Err(DecodeError::UnexpectedEnd { additional: 1 })
-                }
+            fn decode_element(element: FieldElement) -> Result<Self, DecodeError> {
+                let num: $ty = element.try_into().map_err(|_e| DecodeError::OutOfRange)?;
+                Ok(num)
             }
         }
     };
@@ -125,30 +130,16 @@ impl_decode_for_unsigned_num!(u32);
 impl_decode_for_unsigned_num!(u64);
 
 impl Decode for u128 {
-    fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
-        decoder.claim_field_elements_read(1)?;
-        if let Some(elements) = decoder.reader().peek_read(1) {
-            let element = elements[0];
-            decoder.reader().consume(1);
-            let num = u128_from_field_element(element);
-            Ok(num)
-        } else {
-            Err(DecodeError::OutOfRange)
-        }
+    fn decode_element(element: FieldElement) -> Result<Self, DecodeError> {
+        let num = u128_from_field_element(element);
+        Ok(num)
     }
 }
 
 impl Decode for usize {
-    fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
-        decoder.claim_field_elements_read(1)?;
-        if let Some(elements) = decoder.reader().peek_read(1) {
-            let element = elements[0];
-            decoder.reader().consume(1);
-            let num = u64::try_from(element).unwrap();
-            Ok(num as usize)
-        } else {
-            Err(DecodeError::OutOfRange)
-        }
+    fn decode_element(element: FieldElement) -> Result<Self, DecodeError> {
+        let num = u64::try_from(element).unwrap();
+        Ok(num as usize)
     }
 }
 
@@ -163,17 +154,10 @@ impl_decode_with_error!(f64, "f64");
 impl_decode_with_error!(char, "char");
 
 impl Decode for String {
-    fn decode<D: Decoder>(decoder: &mut D) -> Result<Self, DecodeError> {
-        decoder.claim_field_elements_read(1)?;
-        if let Some(elements) = decoder.reader().peek_read(1) {
-            let element = elements[0];
-            decoder.reader().consume(1);
-            let s = hex::encode(element.to_bytes_be());
-            let s = s.trim_start_matches('0');
-            if !s.starts_with("0x") { Ok(String::from("0x") + s) } else { Ok(s.into()) }
-        } else {
-            Err(DecodeError::OutOfRange)
-        }
+    fn decode_element(element: FieldElement) -> Result<Self, DecodeError> {
+        let s = hex::encode(element.to_bytes_be());
+        let s = s.trim_start_matches('0');
+        if !s.starts_with("0x") { Ok(String::from("0x") + s) } else { Ok(s.into()) }
     }
 }
 

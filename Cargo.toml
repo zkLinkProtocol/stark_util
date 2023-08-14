@@ -10,10 +10,11 @@ thiserror = "1.0"
 starknet = { git = "https://github.com/xJonathanLEI/starknet-rs.git",rev = "3f319338" }
 serde = "1.0"
 hex = "0.4"
-primitive-types = "0.12"
+primitive-types = "0.12.1"
 url = "2.3"
 async-trait = "0.1"
 anyhow = "1.0.0"
+zklink_basic_types = { git = "ssh://git@github.com/zkLinkProtocol/zklink-circuit.git", rev = "f7eaf1a" }
 
 [dev-dependencies]
 tokio = {version = "1", features = ["full"]}
